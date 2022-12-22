@@ -1,17 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Test blog</title>
-	<link rel = "stylesheet" type = "text/css" href = "style.css"> 
+    <title>Test blog</title>
+    <link rel = "stylesheet" type = "text/css" href = "style.css"> 
+    <!-- UI -->
+    <style>
+        .box{
+            width: 100%;
+            height: 100px;
+            background-color: #046897;
+        }
+    </style>
+
+    <!-- /begin This the part that I copy from PhamDinhKhanh's Blog. Maybe I don't know what it is, so I will come back in the future -->
+    <footer style="margin-top: 10rem"></footer>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- Config MathJax  -->
+    <script>
+        window.MathJax = {
+            tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            skipHtmlTags: [
+                'script', 'noscript', 'style', 'textarea', 'pre'
+            ],
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <!-- This the part that I copy from PhamDinhKhanh's Blog. Maybe I don't know what it is, so I will come back in the future /end-->
 </head>
 <body>
+    <div class="box"></div>
 <div id = "wrapper">
-	<h1><a href = "/">{{site.site_name}}<a><h1>
-	<div id = "content">
-		{{ content }}
-	</div>
+    <h1><a href = "/">{{site.site_name}}<a><h1>
+    <div id = "content">
+        {{ content }}
+    </div>
 </div>
 </body>
 </html>
 <!-- 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1"> -->

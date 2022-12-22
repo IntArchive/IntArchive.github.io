@@ -1,5 +1,8 @@
+*{
+	margin: 0;
+}
 #wrapper {
-	width: 900px;
+	width: 1960px;
 	margin: 0px auto;
 	
 }
