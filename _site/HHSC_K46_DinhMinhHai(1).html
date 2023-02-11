@@ -1,0 +1,770 @@
+<h1 id="div-styletext-aligncentermột-số-các-phép-biến-hình-trong-không-gian-xạ-ảnh-và-ứng-dụng-của-chúng-trong-hiệu-chỉnh-projection-distortion-và-barrel-distortiondiv">&lt;div style="text-align:center"&gt;Một số các phép biến hình trong không gian xạ ảnh và ứng dụng của chúng trong hiệu chỉnh Projection distortion và Barrel distortion&lt;/div&gt;</h1>
+<div style="text-align:center"> Giảng viên hướng dẫn: Trần Thị Hiếu Nghĩa</div>
+<div style="text-align:center"> Tác giả: Đinh Minh Hải</div>
+<div style="text-align:center"> Học phần: Hình học sơ cấp</div>
+<div style="text-align:center"> Mã lớp học phần: MATH142903</div>
+<div style="text-align:center"> MSSV: 4501101017</div>
+
+<hr />
+<hr />
+
+<h2 id="1-đặt-vấn-đề-introduction">1. Đặt vấn đề (Introduction)</h2>
+<hr />
+
+<p>Các vật thể bị biến dạng xuất phát từ quá trình thu ảnh qua camera tạo ra sai lệch về mặt kích thước, hình dạng, tỉ lệ của các vật thể với nhau và so với thực tế. Do đó, trong các ngành có yêu cầu cao về độ sạch của các dữ liệu hình ảnh như “Thị giác máy tính” (CV - Computer Vision), người ta phải xử lý các hình ảnh, đặc biệt là những hình ảnh bị biến dạng trước khi đưa vào sử dụng làm dữ liệu cho các mô hình học máy.</p>
+
+<p>Một phần nhỏ trong các phương pháp tiền xử lý ảnh là các phép biến hình, dời hình mà tôi vô cùng quen thuộc trong học phần “Hình học sơ cấp”. Vì vậy, tôi đã đi vào nghiên cứu cách ứng dụng chúng để xử lý Projective distortion và Barrel distortion - là hai trong nhiều loại biến dạng thường gặp nhất khi chụp ảnh.</p>
+
+<h2 id="2-cơ-sở-toán-học-preliminaries">2. Cơ sở toán học (Preliminaries)</h2>
+<hr />
+
+<p>Cơ sở toán học sẽ trình bày về 2D points, 2D line và các phép biến đổi(transformation) trong mặt phẳng 2 chiều</p>
+
+<h3 id="21-điểm-2-chiều-2d-point">2.1 Điểm 2-chiều (2D point)</h3>
+
+<p>Điểm 2-chiều $\textbf{x}$ (2D points) được biểu diễn bằng cách sử dụng cặp giá trị $(x,y) \in \mathbb{R}^2$, hay ta có một cách viết khác là</p>
+
+\[\textbf{x} = \left[\begin{matrix} x \\ y \end{matrix}\right]\]
+
+<p>Trong hệ tọa độ thuần nhất $\textit{(homogeneous coordinates)}$, $\tilde{\textbf{x}} = \left( \tilde{x}, \tilde{y}, \tilde{w}\right) \in \mathcal{P}^2$, trong đó các vector chỉ khác biệt về tỉ lệ được xem là tương đương.
+$\mathcal{P}^2 = \mathcal{R}^3 - (0,0,0)$ được gọi là không gian xạ ảnh 2-chiều $\textit{(2D projective space)}$</p>
+
+<p>Một vector thuần nhất $\tilde{\textbf{x}} \textit{ (homogeneous vector)}$ có thể được chuyển thành vector không thuần nhất bằng các chia cho thành tố cuối cùng $\tilde{w}$</p>
+
+\[\tilde{\textbf{x}}= \left( \tilde{x}, \tilde{y}, \tilde{w}\right) = \tilde{w} \left( x, y, 1\right) = \tilde{w}\bar{\textbf{x}}\]
+
+<p>trong đó $\bar{\textbf{x}} = \left( x, y, 1\right)$ là vector bổ sung $\textit{(augmented vector)}$. Các vector thuần nhất có thành tố thứ ba $\tilde{w} = 0$ được gọi là điểm lý tưởng $\textit{(ideal point)}$ hay điểm ở vô cực $\textit{(point at infinity)}$, không có vector không thuần nhất tương đương.</p>
+
+<h3 id="22-đường-thẳng-2-chiều-2d-line">2.2 Đường thẳng 2-chiều (2D line)</h3>
+
+<p>Các đường thẳng 2-chiều có thể được biểu diễn dưới dạng tọa độ thuần nhất $\tilde{l}=(a, b, c)$. Phương trình đường thẳng tương ứng là</p>
+
+\[\tilde{\boldsymbol{l}}^T \overline{\boldsymbol{x}} =a x+b y+c=0\]
+
+<p>Vì các tọa độ thuần nhất sai khác nhau một tỉ số là tương đương, ta có thể chuẩn hóa $\boldsymbol{l}=\left(\frac{a}{\sqrt{a^2 + b^2}},\frac{b}{\sqrt{a^2 + b^2}},\frac{c}{\sqrt{a^2 + b^2}}\right)=\left(\hat{n}_x, \hat{n}_y, d\right)=(\hat{\boldsymbol{n}}, d)$ với chuẩn Euclid của $\hat{\boldsymbol{n}}$, $|\hat{\boldsymbol{n}}|=1$. Khi đó, $\hat{\boldsymbol{n}}$ là một vector chuẩn vuông góc với đường thẳng và khoảng cách từ gốc tọa độ đến chính đường thẳng bằng chính $d$. Ngoài ra, công thức trên cũng được dùng để xác định một điểm có nằm trên đường thẳng trong tọa độ thuần nhất hay không.</p>
+
+<p>Về giao điểm của hai đường thẳng, nó có thể được xác định là tích có hướng của tọa độ thuần nhất của hai đường thẳng.
+Cho $\tilde{\boldsymbol{l}}_1, \tilde{\boldsymbol{l}}_2$, khi đó giao điểm $\tilde{\boldsymbol{x}}$ được tính như sau</p>
+
+\[\tilde{\boldsymbol{x}}=\tilde{\boldsymbol{l}}_1 \times \tilde{\boldsymbol{l}}_2\]
+
+<p>Ngược lại, một đường thẳng đi qua hai điểm cũng có thể được xác định bằng tích có hưởng của hai điểm đó.
+Cho $\tilde{\boldsymbol{x}}_1, \tilde{\boldsymbol{x}}_2$, đường thẳng nối hai điểm trên là $\tilde{\boldsymbol{l}}$ xác định bởi</p>
+
+\[\tilde{\boldsymbol{l}} = \tilde{\boldsymbol{x}}_1 \times \tilde{\boldsymbol{x}}_2\]
+
+<h3 id="23-phép-biến-hình-2-chiều-2d-transformations">2.3 Phép biến hình 2-chiều (2D transformations)</h3>
+
+<h4 id="231-phép-tịnh-tiến">2.3.1 Phép tịnh tiến</h4>
+
+<p>Phép tịnh tiến hai chiều $x’=x+t$ được viết dưới dạng ma trận như sau</p>
+
+\[x' = \left[ \begin{matrix} I &amp; t\end{matrix}\right]\bar{x}\]
+
+<p>trong đó $I$ là ma trận đơn vị cỡ $2\times 2$ hay viết dưới dạng</p>
+
+\[\bar{x}' = \begin{bmatrix} I &amp; t \\ \textbf{0}^T &amp; 1\end{bmatrix}\bar{x}\]
+
+<p>trong đó $\textbf{0}$ là vector 0.</p>
+
+<p>Công thức dùng ma trận $2 \times 2$ cho ta biểu diễn phép quay 2-chiều xúc tích hơn. Tuy nhiên, việc sử dụng ma trận biến đổi $3\times 3$ tạo điều kiện thuận lợi để thực hiện một chuỗi các biến đổi $\textit{(chain transformations)}$ liên tiếp.</p>
+
+<h4 id="232-phép-quay--phép-tịnh-tiến">2.3.2 Phép quay + phép tịnh tiến</h4>
+
+<p>Phép biến đổi này bảo toàn khoảng cách Euclid nên thường được gọi với cái tên phép biến đổi 2-chiều Euclid $\textit{(2D Euclidean transformation})$ hay $\textit{(2D rigid body transformation)}$. Nó được biểu diễn bằng 3 cách như sau:
+\(x'=Rx+t\)</p>
+
+\[x' = \begin{bmatrix} R &amp; t\end{bmatrix}\bar{x}\]
+
+\[\bar{x}' = \begin{bmatrix} R &amp; t \\ \textbf{0}^T &amp; 1\end{bmatrix}\bar{x}\]
+
+<p>trong đó $R = \begin{bmatrix} cos\theta &amp; -sin\theta \ sin\theta &amp; cos\theta \end{bmatrix}$ là một ma trận quay trực giao với $RR^T=I$ và $det(R) = 1$</p>
+
+<p>Dựa trên công thức của phép quay + phép tịnh tiến, lấy $O$ là tâm của phép quay, ta dễ dàng ký hiệu phép dời hình này là $T_{\vec{t}}\circ Q^{\alpha}<em>O$, mà dạng chính tắc của nó là phép quay tâm $O’$ nào đó một góc $\alpha$, ký hiệu $Q^{\alpha}</em>{O’}$. Khi này, ta có thể xây dựng ma trận của một phép quay tâm $\mathcal{C} = (x_{\mathcal{C}}, y_{\mathcal{C}})$ bất kỳ như sau.</p>
+
+<p>Ta sẽ cố gắng phân tích $Q_{\mathcal{C}}^{\alpha} = T_{\vec{a}} \circ Q_{O}^{\alpha}$</p>
+
+<p>Dựng đường thằng $d_3$ đi qua $O$ và $\mathcal{C}$, sau đó dựa trên kết quả của quá trình xây dựng dạng chính tắc của tích hai phép dời hình $T_{\vec{t}}\circ Q^{\alpha}_O$, ta biết được $\mathcal{C}$ cần là giao điểm của $d_3$ và 
+một đường $d_2$ nào đó là ảnh qua phép tịnh tiến theo vector $\frac{1}{2}\vec{a}$ đường thẳng $d_1$. Nhiệm vụ quan trọng lúc này là xác định được $\vec{a}$ thỏa các điều kiện trên.</p>
+
+<p>Với $\alpha$ cho trước, ta xác định được $d_1=Q^{\alpha /2}<em>O$. Lấy $D$ đối xứng với $\mathcal{C}$ qua $d</em>{1}$. Dễ thấy $D \in (O,O\mathcal{C})$. Nếu $D\mathcal{C} \cap d_{1} = B$ thì $\vec{B\mathcal{C}} = \frac{1}{2}\vec{D\mathcal{C}}=\frac{1}{2}\vec{a}$. Thật vậy, $T_{\vec{BC}}(d_1)=d_2$ và $d_2\cap d_3 = \mathcal{C}$. Vậy, ta đã xác định được vector $\vec{a}$.</p>
+
+<p><img src="https://drive.google.com/uc?export=view&amp;id=1gWfDtSy5NvTJwP2xkhCJ2RIPf38Lkt_7" alt="Hình minh họa cho quy trình xác định vector a" /></p>
+
+<p>Figure 1. Minh họa quy trình xác định $\vec{a}$</p>
+
+<p>Khi này dễ chứng minh được 
+$D = Q_{O}^{\alpha} = \begin{bmatrix} cos\theta \cdot x_{\mathcal{C}} -sin\theta \cdot y_{\mathcal{C}} \ sin\theta \cdot x_{\mathcal{C}}  +cos\theta \cdot y_{\mathcal{C}}\end{bmatrix}$ và $\vec{a} = \vec{O\mathcal{C}} - \vec{OD} = \begin{bmatrix} (1-cos\theta)x_{\mathcal{C}} + sin\theta \cdot y_{\mathcal{C}} \ -sin\theta \cdot x_\mathcal{C}  + (1-cos\theta)y_{\mathcal{C}} \end{bmatrix}$ cùng với kết quả quan trọng $Q_{\mathcal{C}}^{\alpha} = T_{\vec{a}} \circ Q_{O}^{\alpha}$</p>
+
+<p>Như vậy ma trận quay tâm $\mathcal{C}$ bất kỳ là $\begin{bmatrix} R &amp; a \end{bmatrix}$. Công thức của ma trận quay tâm $\mathcal{C}$ cụ thể là</p>
+
+\[x' = \begin{bmatrix} R &amp; a \end{bmatrix}\bar{x}\]
+
+<h4 id="233-phép-đồng-dạng-similarity-transform">2.3.3 Phép đồng dạng (Similarity transform)</h4>
+<p>Phép đồng dạng được biểu diễn là $x’ = sRx+t$ trong đó $s$ là nhân tử tỉ lệ tùy ý. Nó còn được viết lại bằng cách sử dụng ma trận $2\times 2$ và $3\times 3$ như sau</p>
+
+\[x' = \left[ \begin{matrix} sR &amp; t\end{matrix}\right]\bar{x}=\begin{bmatrix} a &amp; -b &amp; t_x \\ b &amp; a &amp; t_y \end{bmatrix}\bar{x}\]
+
+\[\bar{x}' = \begin{bmatrix} sR &amp; t \\ \textbf{0}^T &amp; 1\end{bmatrix}\bar{x}=\begin{bmatrix} a &amp; -b &amp; t_x \\ b &amp; a &amp; t_y \\ 0 &amp; 0 &amp; 1\end{bmatrix}\bar{x}\]
+
+<p>với $a,b$ không cần phải thỏa $a^2 + b^2 = 1$.</p>
+
+<p>Bằng cách xem $sR = R’$, phép đồng dạng với tâm quay bất kỳ dễ dàng được xây dựng theo quy trình tương tự như ở mục 2.2.2</p>
+
+<p>Phép đồng dạng bảo toàn góc giữa các đường thẳng.</p>
+
+<h4 id="234-phép-biến-đổi-affine-affine-transformation">2.3.4 Phép biến đổi Affine (Affine transformation)</h4>
+<p>Phép biến đổi Affine được biểu diễn bằng công thức $x’=A\bar{x}$, với $A$ là một ma trận $2\times 3$ tùy ý. Hay</p>
+
+\[x' = \begin{bmatrix} a_{00} &amp; a_{01} &amp; a_{02} \\ a_{10} &amp; a_{11} &amp; a_{12} \end{bmatrix}\bar{x}\]
+
+\[\bar{x}' = \begin{bmatrix} a_{00} &amp; a_{01} &amp; a_{02} \\ a_{10} &amp; a_{11} &amp; a_{12} \\ 0 &amp; 0 &amp; 1\end{bmatrix}\bar{x}\]
+
+<p>Qua phép biến đổi Affine các đường thẳng song song bảo toàn tính song song giữa chúng.</p>
+
+<h4 id="235-phép-biến-đổi-xạ-ảnh-projective">2.3.5 Phép biến đổi xạ ảnh (Projective)</h4>
+<p>Ta có định nghĩa và định lý sau</p>
+
+<p><b>Định nghĩa.</b>
+Một xạ ảnh $\textit{(projectivity)}$ là một ánh xạ khả nghịch $h:\mathbb{P}^2\to\mathbb{P}^2$ biến $3$ điểm thẳng hàng $\mathbf{x}_1, \mathbf{x}_2$ and $\mathbf{x}_3$ thành $3$ điểm thẳng hàng $h\left(\mathbf{x}_1\right), h\left(\mathbf{x}_2\right)$ và $h\left(\mathbf{x}_3\right)$.</p>
+
+<p><b>Định lý 2.3.5.</b> Một ánh xạ $h: \mathbb{P}^2 \rightarrow \mathbb{P}^2$ là một xạ ảnh khi và chỉ khi tồn tại một ma trận không suy biến $\tilde{H}$ cỡ $3 \times 3$  sao cho một điểm bất kỳ trên $\mathbb{P}^2$ đều được biểu diễn bởi $\mathbf{x}$, hay $h(\mathbf{x})=\tilde{H}\mathbf{x}$.</p>
+
+<p>Khi này phép biến đổi xạ ảnh là hệ quả của sự xác định một xạ ảnh $\textit{(projectivity) } h:\mathbb{P}^2\to\mathbb{P}^2$ thông qua một ma trận $3\times 3$ không suy biến $\tilde{H}$.</p>
+
+<p>Phép biến đổi xạ ảnh, còn được biết đến như là biến đổi phối cảnh $\textit{(perspective transform)}$ hay $\textit{(homography)}$
+hoạt động trên hệ tọa độ thuần nhất.</p>
+
+\[\tilde{\textbf{x}}'=\tilde{H}\tilde{\textbf{x}}\]
+
+<p>trong đó $\tilde{H}$ là một ma trận $3 \times 3$ thuần nhất không suy biến, nghĩa là các ma trận sẽ tương đương với nhau nếu chúng sai khác nhau một tỉ lệ nào đó. Tọa độ vector thuần nhất qua phép biến đổi $\tilde{\textbf{x}}’$ có thể được chuẩn hóa để nhận lại vector không thuần nhất $\textbf{x}$. Cụ thể,</p>
+
+\[x'= \dfrac{h_{00}x + h_{01}y + h_{02}}{h_{20}x + h_{21}y + h_{22}}\textrm{ và }y'= \dfrac{h_{10}x + h_{11}y + h_{12}}{h_{20}x + h_{21}y + h_{22}}\]
+
+<p>Phép biến đổi phối cảnh bảo toàn các đường thẳng. Thật vậy, với $\tilde{x}_1,\tilde{x}_2,\tilde{x}_3$ thẳng hàng và $\tilde{x}_j^{‘}=\tilde{H}\tilde{x}_j$ với $j = \overline{1,3}$ . Ta có $\tilde{l}=\tilde{x}_1\times \tilde{x}_2$ thì $\tilde{l}^T \bar{x}_j = 0 =(\tilde{l}^T \bar{x}_j)^T =  \bar{x}_j^T \tilde{l}, j=\overline{1,3}$. Khi đó $0=\tilde{l}^T \bar{x}_j=\tilde{l}^T \tilde{H}^{-1}\tilde{H}\bar{x}_j=(\tilde{l}^T \tilde{H}^{-1}\tilde{H}\bar{x}_j)^{T}=(\tilde{H}\bar{x}_j)^{T}(\tilde{l}^T \tilde{H}^{-1})^T=\bar{x}_j^{‘T}\tilde{H}^{-T}\tilde{l}=(\tilde{H}^{-T}\tilde{l})^T\bar{x}_j^{‘}=\tilde{l}^{‘T}\bar{x}_j^{‘}$</p>
+
+<h2 id="3-giải-quyết-vấn-đề-methods">3. Giải quyết vấn đề (Methods)</h2>
+<hr />
+
+<h3 id="31-chương-trình-các-phép-biến-hình">3.1. Chương trình các phép biến hình</h3>
+
+<p>Đầu tiên tôi tải các thư viện Python cần sử dụng</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">matplotlib.image</span> <span class="k">as</span> <span class="n">mpimg</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># @title Figure Settings
+</span><span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="n">widgets</span>  <span class="c1"># interactive display
+</span><span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="p">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s">'retina'</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">style</span><span class="p">.</span><span class="n">use</span><span class="p">(</span><span class="s">"https://raw.githubusercontent.com/NeuromatchAcademy/course-content/main/nma.mplstyle"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># url = 'https://drive.google.com/uc?export=view&amp;id=1lAH8jt2ssTZCpUc2wnVfaWrI3rFnPbzv'
+</span><span class="n">url</span> <span class="o">=</span> <span class="s">'https://drive.google.com/uc?export=view&amp;id=1NGn4iHxvjMztOLj2Fqw9_fIK6tlXw76B'</span>
+<span class="n">image_raw</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="nb">open</span><span class="p">(</span><span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">True</span><span class="p">).</span><span class="n">raw</span><span class="p">)</span>
+
+<span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">image_raw</span><span class="p">)</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">image_raw</span><span class="p">)</span>
+<span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">shape</span>
+<span class="n">Z</span><span class="o">=</span><span class="n">img</span>
+<span class="n">angle</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">matrix</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">getRotationMatrix2D</span><span class="p">((</span><span class="n">rows</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">cols</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">angle</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Z</span><span class="p">.</span><span class="n">shape</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>(1087, 1087, 3)
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">release_black_dot</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="s">''' 
+    '''</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1086</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1086</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">img</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="nb">all</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">img</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">].</span><span class="nb">all</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">img</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">].</span><span class="nb">all</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">img</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">img</span>
+            
+<span class="k">def</span> <span class="nf">warpmatrix_to_img</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
+    <span class="s">''' Warp matrix to rotate the image
+    :param Z: the image ndarray
+    :param matrix: the rotation matrix
+    '''</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">coor</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">round</span><span class="p">(</span><span class="n">matrix</span> <span class="o">@</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="mi">1</span><span class="p">]).</span><span class="n">T</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="c1">#     print(coor)
+</span>            <span class="k">if</span> <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">warpmatrix_translation_to_img</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
+    <span class="s">''' Warp matrix to translation the image
+    :param Z: the image ndarray
+    :param matrix: the translation matrix
+    '''</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">coor</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">round</span><span class="p">(</span><span class="n">matrix</span> <span class="o">@</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]).</span><span class="n">T</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="c1">#     print(coor)
+</span>            <span class="k">if</span> <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="p">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">axes</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">warpmatrix_projective_translation_to_img</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">(</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">coor</span> <span class="o">=</span> <span class="n">matrix</span> <span class="o">@</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]).</span><span class="n">T</span>
+            <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">round</span><span class="p">(</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="c1">#             print('coor[0]:', coor[0])
+</span>            <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">round</span><span class="p">(</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="c1">#             print('coor[1]:', coor[1])
+</span>            <span class="n">coor</span> <span class="o">=</span> <span class="n">coor</span><span class="p">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="c1">#np.transpose(a,axes = (1,0,2)).astype(int)
+</span>
+<span class="k">def</span> <span class="nf">getRotationMatrix2D</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+    <span class="s">''' Obtain the Rotation matrix with given rotation center, angle and scale
+    :param center: center of the rotation
+    :param angle: the angle of the rotation
+    :param scale: the scale ratio
+    '''</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">scale</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">scale</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">a</span><span class="p">,</span><span class="o">-</span><span class="n">b</span><span class="p">,(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]],[</span><span class="n">b</span><span class="p">,</span><span class="n">a</span><span class="p">,</span> <span class="o">-</span><span class="n">b</span><span class="o">*</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]]])</span>
+    <span class="k">return</span> <span class="n">matrix</span>
+</code></pre></div></div>
+
+<p>Hình bên dưới là tấm hình gốc mà tôi sử dụng cho toàn bộ bài tiểu luận này. Có một số nội dung quan trọng chúng ta cần lưu ý:</p>
+
+<p>Thứ nhất, nhằm tạo thuận lợi cho thuật toán hiển thị hình ảnh thì gốc (điểm có tọa độ $(0,0)$) của hình) nằm ở góc phía trên bên trái, các điểm trong ảnh hiển thị theo tọa độ của điểm ảnh (pixel) là tọa độ nguyên do đó trong quá trình tính toán ảnh của một điểm qua phép biến hình nếu có xuất hiện tọa độ thực, ta phải có cách xử lý phù hợp.</p>
+
+<p>Thứ hai, khi chúng ta điều chỉnh bất kỳ một tham số nào trong phép biến hình, thì đoạn chương trình sẽ quay lại tác động lên bức ảnh gốc và xuất ra kết quả thay vì tác động lên kết quả trước đó. Chi tiết hơn dành cho lưu ý này có ở phần đánh giá phía dưới chương trình thực hiện phép tịnh tiến.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;matplotlib.image.AxesImage at 0x7f0a8c9af280&gt;
+</code></pre></div></div>
+
+<p><img src="output_29_1.png" alt="png" /></p>
+
+<p>Phía trên phần hiển thị ảnh có các thanh trượt, bằng các sử dụng các thanh trượt này, chúng ta có thể điều chỉnh các tham số cho các phép biến hình.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Translation: tịnh tiến
+</span><span class="n">shiftX</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">shiftY</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="o">@</span><span class="n">widgets</span><span class="p">.</span><span class="n">interact</span><span class="p">(</span><span class="n">shiftX</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                  <span class="n">shiftY</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">visualize_translation</span><span class="p">(</span><span class="n">shiftX</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="n">shiftY</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="c1"># Ma trận của phép tịnh tiến
+</span>    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">shiftX</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">shiftY</span><span class="p">]])</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">warpmatrix_translation_to_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">new_img</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interactive(children=(FloatSlider(value=0.0, description='shiftX', max=1000.0, step=1.0), FloatSlider(value=0.…
+</code></pre></div></div>
+
+<p>Như đã đề cập sơ lược trong lưu ý số 2, ta có thể thấy quá trình di chuyển thanh trượt <code class="language-plaintext highlighter-rouge">shiftX</code> đến giá trị 100, máy tính sẽ chạy chương trình và tịnh tiến bức ảnh theo vector tương ứng. Khi này gốc tọa độ của bức hình được hiển thị là một pixel màu đen, ta tiếp tục thay đổi giá trị <code class="language-plaintext highlighter-rouge">shiftX</code> lên 150 thì chương trình sẽ không tịnh tiến bức hình vừa mới hiển thị qua trái 150px, thay vào đó, nó bỏ qua kết quả vừa hiển thị, coi các giá trị <code class="language-plaintext highlighter-rouge">shiftX, shiftY</code> mới và tấm hình gốc của bài tiểu luận này là input để chạy chương trình và in ra kết quả.</p>
+
+<p>Trở lại với nội dung chính, <code class="language-plaintext highlighter-rouge">shiftX, shiftY</code> là tọa độ của vector tịnh tiến. Ma trận tịnh tiến được sử dụng ở chương trình trên là <code class="language-plaintext highlighter-rouge">matrix</code>với</p>
+
+<p><code class="language-plaintext highlighter-rouge">matrix</code> $= \begin{bmatrix}1 &amp; 0 &amp; shiftX \ 0 &amp; 1 &amp; shiftY \end{bmatrix}$.</p>
+
+<p>Việc thay đổi <code class="language-plaintext highlighter-rouge">shiftX, shiftY</code> bằng thanh trượt lần lượt làm cho bức hình dịch chuyển theo phương ngang và phương dọc. Như vậy, chúng ta không thể thay đổi đồng thời <code class="language-plaintext highlighter-rouge">shiftX, shiftY</code> nên thao tác tịnh tiến theo một vector bất kỳ $T_{\vec{c}}$ chẳng hạn $\vec{c} = (100, 100)$ được chuyển thành tích của hai phép tịnh tiến $T_{\vec{b}}\circ T_{\vec{a}}$ với $\vec{a}, \vec{b} = (100,0), (0,100)$ và ngược lại, tùy theo việc ta thay đổi <code class="language-plaintext highlighter-rouge">shiftX</code> hay <code class="language-plaintext highlighter-rouge">shiftY</code> trước.</p>
+
+<p>Chương trình phía dưới là một phiên bản khác của chương trình tịnh tiến bức ảnh, được đặc trưng bởi khả năng xác lập giá trị của vector tịnh tiến trước khi thực hiện xuất ra kết quả của phép tịnh tiến.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Translation: tịnh tiến
+</span><span class="n">sx</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">IntText</span><span class="p">(</span>
+    <span class="n">value</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s">'shiftX:'</span><span class="p">,</span>
+    <span class="n">disabled</span><span class="o">=</span><span class="bp">False</span>
+<span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">sx</span><span class="p">)</span>
+<span class="n">textsx</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">Text</span><span class="p">()</span>
+<span class="n">sy</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">IntText</span><span class="p">(</span>
+    <span class="n">value</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s">'shiftY:'</span><span class="p">,</span>
+    <span class="n">disabled</span><span class="o">=</span><span class="bp">False</span>
+<span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">sy</span><span class="p">)</span>
+<span class="n">buton</span> <span class="o">=</span>  <span class="n">widgets</span><span class="p">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span> <span class="o">=</span> <span class="s">'translation'</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">buton</span><span class="p">)</span>
+
+
+
+<span class="c1"># @widgets.interact(shiftX = widgets.IntText(value=100, description='shiftX:', disabled=False),
+#                   shiftY = widgets.IntText(value=100, description='shiftX:', disabled=False))
+</span><span class="k">def</span> <span class="nf">visualize_translation</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+    <span class="n">shiftX</span> <span class="o">=</span> <span class="n">sx</span><span class="p">.</span><span class="n">value</span>
+    <span class="n">shiftY</span> <span class="o">=</span> <span class="n">sy</span><span class="p">.</span><span class="n">value</span>
+    <span class="c1"># Ma trận của phép tịnh tiến
+</span>    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">shiftX</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">shiftY</span><span class="p">]])</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">warpmatrix_translation_to_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Vector tịnh tiến: t = ({},{})"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">shiftX</span><span class="p">,</span><span class="n">shiftY</span><span class="p">))</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">new_img</span><span class="p">)</span>
+<span class="n">buton</span><span class="p">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">visualize_translation</span><span class="p">)</span>
+
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>IntText(value=100, description='shiftX:')
+
+
+
+IntText(value=100, description='shiftY:')
+
+
+
+Button(description='translation', style=ButtonStyle())
+
+
+Vector tịnh tiến: t = (100,100)
+</code></pre></div></div>
+
+<p><img src="output_35_4.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Rotation: phép quay
+</span><span class="o">@</span><span class="n">widgets</span><span class="p">.</span><span class="n">interact</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">.</span><span class="mi">2</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span><span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="c1">#     matrix = getRotationMatrix2D((rows/2, cols/2), angle, 0.5)
+</span>    <span class="n">matrix</span> <span class="o">=</span> <span class="n">getRotationMatrix2D</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">angle</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">warpmatrix_to_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">release_black_dot</span><span class="p">(</span><span class="n">new_img</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interactive(children=(FloatSlider(value=0.2, description='angle', max=180.0, step=1.0), Output()), _dom_classe…
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Phép biến đổi rigid(Euclidean)
+</span><span class="n">shiftX</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">shiftY</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="o">@</span><span class="n">widgets</span><span class="p">.</span><span class="n">interact</span><span class="p">(</span><span class="n">theta</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span>
+                  <span class="n">shiftX</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                  <span class="n">shiftY</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">visualize_translation</span><span class="p">(</span><span class="n">theta</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shiftX</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="n">shiftY</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="n">a11</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+    <span class="n">a12</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="p">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span> 
+    <span class="n">a21</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span> 
+    <span class="n">a22</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">a11</span><span class="p">,</span><span class="o">-</span><span class="n">a12</span><span class="p">,</span><span class="n">shiftX</span><span class="p">],[</span><span class="o">-</span><span class="n">a21</span><span class="p">,</span><span class="n">a22</span><span class="p">,</span><span class="n">shiftY</span><span class="p">]])</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">warpmatrix_translation_to_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">img</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">new_img</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interactive(children=(FloatSlider(value=0.0, description='theta', max=180.0, step=1.0), FloatSlider(value=0.0,…
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Affine transformation
+</span><span class="n">shiftX</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">shiftY</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="o">@</span><span class="n">widgets</span><span class="p">.</span><span class="n">interact</span><span class="p">(</span><span class="n">a00</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">a01</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">0.4</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">a02</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">a10</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">a11</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),</span>
+                  <span class="n">a12</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">visualize_translation</span><span class="p">(</span><span class="n">a00</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a01</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a02</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a10</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a11</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a12</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">a00</span><span class="p">,</span><span class="n">a01</span><span class="p">,</span><span class="n">a02</span><span class="p">],[</span><span class="n">a10</span><span class="p">,</span><span class="n">a11</span><span class="p">,</span><span class="n">a12</span><span class="p">]])</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">img</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">new_img</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interactive(children=(FloatSlider(value=0.8, description='a00', max=1.3, min=0.3), FloatSlider(value=0.1, desc…
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Projective transformation
+</span>
+<span class="o">@</span><span class="n">widgets</span><span class="p">.</span><span class="n">interact</span><span class="p">(</span><span class="n">h00</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span>
+                  <span class="n">h01</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">0.4</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h02</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h10</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h11</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),</span>
+                  <span class="n">h12</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),</span>
+                  <span class="n">h20</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.9</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h21</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.9</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h22</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),)</span>
+<span class="k">def</span> <span class="nf">visualize_translation</span><span class="p">(</span><span class="n">h00</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">h01</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">h02</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">h10</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">h11</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">h12</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h20</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h21</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h22</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">h00</span><span class="p">,</span><span class="n">h01</span><span class="p">,</span><span class="n">h02</span><span class="p">],[</span><span class="n">h10</span><span class="p">,</span><span class="n">h11</span><span class="p">,</span><span class="n">h12</span><span class="p">],[</span><span class="n">h20</span><span class="p">,</span><span class="n">h21</span><span class="p">,</span><span class="n">h22</span><span class="p">]])</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">2000</span><span class="p">))</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">img</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">new_img</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="p">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s">"building.png"</span><span class="p">,</span><span class="n">new_img</span><span class="p">)</span>
+    
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interactive(children=(FloatSlider(value=1.0, description='h00', max=10.0, min=1.0, step=1.0), FloatSlider(valu…
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Projective transformation
+</span>
+<span class="o">@</span><span class="n">widgets</span><span class="p">.</span><span class="n">interact</span><span class="p">(</span><span class="n">h00</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span>
+                  <span class="n">h01</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">0.4</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h02</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h10</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h11</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),</span>
+                  <span class="n">h12</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),</span>
+                  <span class="n">h20</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.9</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h21</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.9</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">),</span>
+                  <span class="n">h22</span> <span class="o">=</span> <span class="n">widgets</span><span class="p">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">),)</span>
+<span class="k">def</span> <span class="nf">visualize_translation</span><span class="p">(</span><span class="n">h00</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">h01</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">h02</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">h10</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">h11</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">h12</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h20</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h21</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h22</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">h00</span><span class="p">,</span><span class="n">h01</span><span class="p">,</span><span class="n">h02</span><span class="p">],[</span><span class="n">h10</span><span class="p">,</span><span class="n">h11</span><span class="p">,</span><span class="n">h12</span><span class="p">],[</span><span class="n">h20</span><span class="p">,</span><span class="n">h21</span><span class="p">,</span><span class="n">h22</span><span class="p">]])</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">img</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">new_img</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="p">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s">"building.png"</span><span class="p">,</span><span class="n">new_img</span><span class="p">)</span>
+    
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interactive(children=(FloatSlider(value=1.0, description='h00', max=10.0, min=1.0, step=1.0), FloatSlider(valu…
+</code></pre></div></div>
+
+<h3 id="32-xử-lý-projective-distortion">3.2 Xử lý projective distortion</h3>
+
+<p>Ta có bức hình sau</p>
+
+<p><img src="https://drive.google.com/uc?export=view&amp;id=1zmMK2CZBbZ0x6f-ZRe6tanyhWhCOVdfo" alt="alt text" /></p>
+
+<p>Trong hệ tọa độ thuần nhất, hai đường thẳng song song sẽ gặp nhau tại điểm ở vô cực $\textit{(point at infinity)}$ nhưng đối với bức hình này, mép trên và mép dưới của tòa nhà là các đường thẳng sẽ cắt nhau tại một điểm hữu hạn trong trường hợp chúng ta vẽ thêm. Xuất phát từ các phép chiều 3D sang 2D khi chụp ảnh đã không bảo toàn tính song song, người ta thường gọi hiện tượng này là biến dạng xạ ảnh $\textit{(projective distortion)}$</p>
+
+<p>Sự biến dạng xạ ảnh $\textit{(projective distortion)}$ thường nằm ngoài chủ đích của người chụp ảnh. Trong trường hợp chúng ta muốn loại bỏ biến dạng xạ ảnh, ta có thể sử dụng định lý 2.3.5 và phép biến đổi xạ ảnh mặt phẳng rút ra từ ma trận biến đổi $\tilde{H}$</p>
+
+<p>Đầu tiên, ta chọn 4 điểm $\tilde{x}_i$ thuộc một mặt bất kỳ của tòa nhà, sao cho 4 điểm đó là 4 đỉnh của một hình chữ nhật khi không xảy ra hiện tượng biến dạng xạ ảnh $\textit{(projective distortion)}$ và có thể nhận được 4 đỉnh $\tilde{x}_i’$ của hình chữ nhật từ đó.</p>
+
+<p>Bằng cách, tìm một xạ ảnh $h$ thỏa $\tilde{x}_i’=\tilde{H}\tilde{x}_i, i = \overline{1,4}$ và áp dụng cho tất cả các điểm còn lại, ta sẽ được một tấm ảnh không biến dạng.</p>
+
+<p>Thuật toán tôi sử dụng để tìm $H$ (vì $H$ tương đương với $\tilde{H}$ khi $\tilde{H} = h_{33}H$) là Direct Linear Transformation ở dạng chuẩn hóa</p>
+
+<p>Ta có ${\mathrm{x}}_i=\left(x_i, y_i, w_i\right)^{\top},{\mathrm{x}}_i^{\prime}=\left(x_i^{\prime}, y_i^{\prime}, w_i^{\prime}\right)^{\top}$,   ${\mathrm{x}}_i^{\prime}={H}{\mathrm{x}}_i$,  ${\mathrm{x}}_i^{\prime} \times {H}{\mathrm{x}}_i=0$ với $i=\overline{1,4}$</p>
+
+<p>${H} = \begin{bmatrix} h_{11}&amp; h_{12}&amp; h_{13} \ h_{21}&amp; h_{22}&amp; h_{23}\h_{31}&amp; h_{32}&amp; h_{33} \end{bmatrix} = \begin{bmatrix}\mathrm{h}^{1^{\top}} \ \mathrm{h}^{2^{\top}} \ \mathrm{h}^{3^{\top}}\end{bmatrix}$. Khi đó, $ {H}\mathrm{x}_i=\begin{bmatrix}\mathrm{h}^{1^{\top}} {\mathrm{x}}_i \ \mathrm{h}^{2^{\top}} {\mathrm{x}}_i \ \mathrm{h}^{3^{\top}} {\mathrm{x}}_i\end{bmatrix}$</p>
+
+<p>Ta tính được
+${\mathrm{x}}_i^{\prime} \times {H}{\mathrm{x}}_i=\begin{bmatrix}y_i^{\prime} \mathrm{h}^{3^{\top}} \mathrm{x}_i-w_i^{\prime} \mathrm{h}^{2^{\top}} \mathrm{x}_i \ w_i^{\prime} \mathrm{h}^{1^{\top}} \mathrm{x}_i-x_i^{\prime} \mathrm{h}^{3^{\top}} \mathrm{x}_i \ x_i^{\prime} \mathrm{h}^{2^{\top}} \mathrm{x}_i-y_i^{\prime} \mathrm{h}^{1^{\top}} \mathrm{x}_i\end{bmatrix}=\left[\begin{array}{ccc}0^{\top} &amp; -w_i^{\prime} \mathrm{x}_i^{\top} &amp; y_i^{\prime} \mathrm{x}_i^{\top} \ w_i^{\prime} \mathrm{x}_i^{\top} &amp; 0^{\top} &amp; -x_i^{\prime} \mathrm{x}_i^{\top} \ -y_i^{\prime} \mathrm{x}_i^{\top} &amp; x_i^{\prime} \mathrm{x}_i^{\top} &amp; 0^{\top}\end{array}\right]\left(\begin{array}{c}\mathrm{h}^1 \ \mathrm{h}^2 \ \mathrm{h}^3\end{array}\right)$, trong đó $0^{\top}=(0,0,0)$</p>
+
+<p>Đặt 
+$A_i = \left[\begin{array}{ccc}0^{\top} &amp; -w_i^{\prime} \mathrm{x}_i^{\top} &amp; y_i^{\prime} \mathrm{x}_i^{\top} \ w_i^{\prime} \mathrm{x}_i^{\top} &amp; 0^{\top} &amp; -x_i^{\prime} \mathrm{x}_i^{\top} \ -y_i^{\prime} \mathrm{x}_i^{\top} &amp; x_i^{\prime} \mathrm{x}_i^{\top} &amp; 0^{\top}\end{array}\right]$, ta có $A_i\mathrm{\mathbf{h}}=0$</p>
+
+<p>Tiếp tục
+đặt $A = \begin{pmatrix}A_1\A_2\A_3\A_4\end{pmatrix}$, ta nhận được ma trận $A$ cỡ $12 \times 9$.</p>
+
+<p>Tuy nhiên chỉ có $2$ trong $3$ dòng của $A_i, i = \overline{1,4}$ là độc lập tuyến tính (chứng minh sau), nên ma trận $A$ sau cùng có cỡ $8 \times 9$, cùng với $\mathrm{\mathbf{h}}$ được hình thành từ $H$ có thành tố cuối cùng bằng $1$.
+Ta lập được hệ phương trình tuyến tính $A\mathrm{\mathbf{h}}=0$ tám ẩn $h_{ij},i=\overline{1,3},j=\overline{1,3},i^2+j^2 \ne 9$ giải được.</p>
+
+<h4 id="321-thuật-toán-dltdirect-linear-transformation">3.2.1 Thuật toán DLT(Direct Linear Transformation)</h4>
+
+<p>Đầu vào</p>
+
+<p>Cho $n \geq 4$ cặp điểm 2-chiều tương ứng  $\left{x_i \leftrightarrow x_i{ }^{\prime}\right}$,</p>
+
+<p>Đầu ra</p>
+
+<p>Ma trận xạ ảnh 2-chiều $\mathrm{H}$ sao cho $\mathrm{x}<em>{i}{ }^{\prime}=\mathrm{Hx}</em>{i}$</p>
+
+<p>Thuật toán</p>
+
+<p>(i) Với mỗi cặp tương ứng $\mathrm{x}<em>{i} \leftrightarrow \mathrm{x}</em>{i}$  tính $\mathrm{A}_{i}$ bằng cách sử dụng 2 dòng đầu tiên</p>
+
+<p>(ii) Gộp $n$ các m trận $\mathrm{A}_{i}$ cỡ $2\times 9$ thành một ma trận $\mathrm{A}$ cỡ $2 n \times 9$</p>
+
+<p>(iii) Tìm $h$</p>
+
+<p>(iv) Xác định ma trận $\mathrm{H}$ từ ánh xạ $\mathrm{h}$</p>
+
+<h4 id="322-thuật-toán-dlt-chuẩn-hóa">3.2.2 Thuật toán DLT chuẩn hóa</h4>
+<p>Đầu vào</p>
+
+<p>Cho $n \geq 4$ các điểm 2-chiều tương ứng $\left{x_i \leftrightarrow x_i{ }^{\prime}\right}$, hãy tìm ma trận xạ ảnh 2-chiều  $\mathrm{H}$ sao cho $\mathrm{x}<em>{\mathrm{i}}{ }^{\prime}=\mathrm{Hx}</em>{\mathrm{i}}$</p>
+
+<p>Thuật toán</p>
+
+<p>(i) Chuẩn hóa các điểm đầu vào $\quad \widetilde{\mathrm{x}}<em>{\mathrm{i}}=\mathrm{T}</em>{\text {norm }} \mathrm{x}<em>{\mathrm{i}}, \widetilde{\mathrm{x}}</em>{\mathrm{i}}^{\prime}=\mathrm{T}<em>{\text {norm }}^{\prime} \mathrm{x}</em>{\mathrm{i}}^{\prime}$</p>
+
+<p>(ii) Áp dung thuật toán DLT $\quad \widetilde{\mathrm{x}}<em>{\mathrm{i}} \leftrightarrow \widetilde{\mathrm{x}}</em>{\mathrm{i}}^{\prime}$,</p>
+
+<p>(iii) Phương pháp giải chuẩn hóa $\textit{(Denormalized solution)}$ $\quad \mathrm{H}=\mathrm{T}<em>{\text {norm }}^{\prime-1} \widetilde{\mathrm{H}}\mathrm{T}</em>{\text {norm }}$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="p">.</span><span class="n">use</span><span class="p">(</span><span class="s">"Agg"</span><span class="p">)</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">linalg</span><span class="p">,</span> <span class="n">matrix</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span>  <span class="n">griddata</span>
+
+
+
+<span class="k">def</span> <span class="nf">load_image</span><span class="p">(</span><span class="n">im</span><span class="p">):</span>  
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">imx</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="nb">open</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">imx</span><span class="p">)</span>
+        <span class="c1"># else
+</span>    <span class="k">except</span> <span class="nb">IOError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    
+<span class="k">def</span> <span class="nf">select_four_points</span><span class="p">(</span><span class="n">im</span><span class="p">):</span>       
+     <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>     
+     <span class="n">xx</span> <span class="o">=</span> <span class="n">plt</span><span class="p">.</span><span class="n">ginput</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+     <span class="n">xx</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+     <span class="k">print</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span>
+     <span class="k">return</span> <span class="n">xx</span>
+     
+     
+<span class="k">def</span> <span class="nf">generate_GT</span><span class="p">(</span><span class="n">xx</span><span class="p">):</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+ 
+    <span class="n">zzd</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>   
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>         
+<span class="c1">#        x2 =xx[ii+1][0]; y2=xx[ii+1][1]
+</span>        <span class="n">x1</span> <span class="o">=</span><span class="n">xx</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span> <span class="n">y1</span><span class="o">=</span><span class="n">xx</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">zzd</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x1</span><span class="p">;</span> <span class="n">zzd</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y1</span><span class="p">;</span> <span class="n">zzd</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> 
+        <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">([</span><span class="n">xx</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">xx</span><span class="p">[</span><span class="n">ii</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">xx</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">xx</span><span class="p">[</span><span class="n">ii</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span> <span class="s">'ro-'</span><span class="p">)</span> 
+    <span class="n">jj</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">aa</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">zz</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>     
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">zzd</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">zzd</span><span class="p">[</span><span class="n">aa</span><span class="p">[</span><span class="n">jj</span><span class="p">],</span><span class="mi">0</span><span class="p">]</span> 
+            <span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">zzd</span><span class="p">[</span><span class="n">aa</span><span class="p">[</span><span class="n">jj</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">]</span> 
+            <span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>   
+            <span class="n">jj</span> <span class="o">=</span> <span class="n">jj</span><span class="o">+</span><span class="mi">2</span>
+    <span class="n">zz</span><span class="p">[</span><span class="mi">4</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">zz</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>      
+        <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">([</span><span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">zz</span><span class="p">[</span><span class="n">ii</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]],</span> <span class="s">'go-'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">zz</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,:],</span><span class="n">zzd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span>    
+        
+        
+<span class="c1">#We have x' = z and x =zd
+</span><span class="k">def</span> <span class="nf">normalize_points</span><span class="p">(</span><span class="n">zz</span><span class="p">):</span>
+    <span class="n">uu</span> <span class="o">=</span> <span class="n">zz</span><span class="p">.</span><span class="n">T</span>
+    <span class="n">ff_xx</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">ones</span><span class="p">(</span><span class="n">uu</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">indices</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">where</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">uu</span><span class="p">[</span><span class="mi">2</span><span class="p">,:])</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="o">**-</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">ff_xx</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">uu</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="n">indices</span><span class="p">]</span><span class="o">/</span><span class="n">uu</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">indices</span><span class="p">]</span>
+    <span class="n">ff_xx</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">indices</span><span class="p">]</span>  <span class="o">=</span> <span class="mf">1.</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ff_xx</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,:],</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">mu_r</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">mu</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ff_xx</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ff_xx</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">mu_r</span><span class="p">[:,</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">mu</span>
+    <span class="n">mu_dist</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">mean</span><span class="p">((</span><span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">ff_xx</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mu_r</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="n">axis</span> <span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span>  <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mf">0.5</span><span class="o">/</span><span class="n">mu_dist</span><span class="p">)</span>
+    <span class="n">s0</span> <span class="o">=</span> <span class="o">-</span><span class="n">scale</span><span class="o">*</span><span class="n">mu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">s1</span> <span class="o">=</span> <span class="o">-</span><span class="n">scale</span><span class="o">*</span><span class="n">mu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">scale</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">s1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">normalized_zz</span> <span class="o">=</span> <span class="n">S</span><span class="o">@</span><span class="n">ff_xx</span>
+    <span class="k">return</span> <span class="n">normalized_zz</span><span class="p">,</span> <span class="n">S</span>
+    
+<span class="k">def</span> <span class="nf">compute_A</span><span class="p">(</span><span class="n">uu</span><span class="p">,</span><span class="n">vv</span><span class="p">):</span>
+    <span class="c1">#build for i =1:4 the matrix Ai
+</span>    <span class="c1">## uu=GT = x' in HZ, vv= distorted = x in HZ
+</span>    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">uu</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="mi">9</span><span class="p">))</span>
+    <span class="n">jj</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">uu</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>       
+        <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">uu</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">ii</span><span class="p">]</span> <span class="o">*</span> <span class="n">vv</span><span class="p">[:,</span><span class="n">ii</span><span class="p">])</span> 
+        <span class="n">c</span> <span class="o">=</span>  <span class="n">uu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">ii</span><span class="p">]</span> <span class="o">*</span> <span class="n">vv</span><span class="p">[:,</span><span class="n">ii</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span>  <span class="n">uu</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">ii</span><span class="p">]</span> <span class="o">*</span> <span class="n">vv</span><span class="p">[:,</span><span class="n">ii</span><span class="p">]</span>
+        <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="o">-</span><span class="n">uu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">ii</span><span class="p">]</span><span class="o">*</span><span class="n">vv</span><span class="p">[:,</span><span class="n">ii</span><span class="p">])</span>
+        <span class="n">row1</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">row2</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">d</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">f</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">A</span><span class="p">[</span><span class="n">jj</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">row1</span>
+        <span class="n">A</span><span class="p">[</span><span class="n">jj</span><span class="o">+</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">row2</span>
+        <span class="n">jj</span> <span class="o">=</span> <span class="n">jj</span><span class="o">+</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">A</span>
+
+
+<span class="k">def</span> <span class="nf">compute_homography</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">T1</span><span class="p">,</span><span class="n">T2</span><span class="p">):</span>
+<span class="c1">#
+</span>    <span class="n">null_space_of_A</span> <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">null_space</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+    <span class="n">hh_normalized</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">null_space_of_A</span><span class="p">,(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> 
+    <span class="n">hh</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">inv</span><span class="p">(</span><span class="n">T2</span><span class="p">),</span><span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">hh_normalized</span><span class="p">,</span><span class="n">T1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">hh</span>
+
+<span class="c1">### Transform Image
+</span>    
+<span class="k">def</span> <span class="nf">rgb2gray</span><span class="p">(</span><span class="n">imm</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">imm</span><span class="p">[...,:</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.2989</span><span class="p">,</span> <span class="mf">0.5870</span><span class="p">,</span> <span class="mf">0.1140</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">image_rebound</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="n">nn</span><span class="p">,</span><span class="n">hh</span><span class="p">):</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="n">nn</span><span class="p">,</span> <span class="n">nn</span><span class="p">,</span> <span class="mi">1</span> <span class="p">],[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">mm</span><span class="p">],[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">ws</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">hh</span><span class="p">,</span><span class="n">W</span><span class="p">)</span>
+    <span class="c1">### scaling
+</span>    <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">ws</span><span class="p">[</span><span class="mi">2</span><span class="p">,:],</span><span class="n">ws</span><span class="p">[</span><span class="mi">2</span><span class="p">,:],</span><span class="n">ws</span><span class="p">[</span><span class="mi">2</span><span class="p">,:]))</span>
+    <span class="n">wsX</span> <span class="o">=</span>  <span class="n">np</span><span class="p">.</span><span class="nb">round</span><span class="p">(</span><span class="n">ws</span><span class="o">/</span><span class="n">xx</span><span class="p">)</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="p">.</span><span class="nb">min</span><span class="p">(</span><span class="n">wsX</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]),</span> <span class="n">np</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">wsX</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]),</span><span class="n">np</span><span class="p">.</span><span class="nb">min</span><span class="p">(</span><span class="n">wsX</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]),</span> <span class="n">np</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">wsX</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])]</span>
+    <span class="k">return</span> <span class="n">bounds</span>
+
+
+<span class="k">def</span> <span class="nf">make_transform</span><span class="p">(</span><span class="n">imm</span><span class="p">,</span><span class="n">hh</span><span class="p">):</span>
+    <span class="n">imm_gray</span> <span class="o">=</span> <span class="n">rgb2gray</span><span class="p">(</span><span class="n">imm</span><span class="p">)</span>   
+    <span class="n">mm</span><span class="p">,</span><span class="n">nn</span> <span class="o">=</span> <span class="n">imm</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">imm</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">image_rebound</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="n">nn</span><span class="p">,</span><span class="n">hh</span><span class="p">)</span>
+    <span class="n">nrows</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ncols</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">nn</span><span class="p">,</span><span class="n">mm</span><span class="p">)</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">trasf</span> <span class="o">=</span> <span class="n">scale</span><span class="o">@</span><span class="n">hh</span>
+    <span class="n">trasf_prec</span> <span class="o">=</span>  <span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">inv</span><span class="p">(</span><span class="n">trasf</span><span class="p">)</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">image_rebound</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="n">nn</span><span class="p">,</span><span class="n">trasf</span><span class="p">)</span>
+    <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">ncols</span> <span class="o">=</span> <span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">]).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">trasf</span><span class="p">,</span> <span class="n">trasf_prec</span><span class="p">,</span> <span class="n">imm_gray</span>
+
+
+<span class="k">def</span> <span class="nf">get_new_image</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">,</span><span class="n">imm</span><span class="p">,</span><span class="n">bounds</span><span class="p">,</span><span class="n">trasf_prec</span><span class="p">,</span><span class="n">nsamples</span><span class="p">):</span>
+    <span class="n">xx</span>  <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+    <span class="n">yy</span>  <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">nrows</span><span class="p">)</span>
+    <span class="p">[</span><span class="n">xi</span><span class="p">,</span><span class="n">yi</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="p">)</span> 
+    <span class="n">a0</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">order</span> <span class="o">=</span><span class="s">'F'</span><span class="p">)</span><span class="o">+</span><span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">a1</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">yi</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span><span class="s">'F'</span><span class="p">)</span><span class="o">+</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">a2</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">ones</span><span class="p">((</span><span class="n">ncols</span><span class="o">*</span><span class="n">nrows</span><span class="p">))</span>
+    <span class="n">uv</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">a0</span><span class="p">.</span><span class="n">T</span><span class="p">,</span><span class="n">a1</span><span class="p">.</span><span class="n">T</span><span class="p">,</span><span class="n">a2</span><span class="p">.</span><span class="n">T</span><span class="p">))</span> 
+    <span class="n">new_trasf</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">trasf_prec</span><span class="p">,</span><span class="n">uv</span><span class="p">)</span>
+    <span class="n">val_normalization</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">new_trasf</span><span class="p">[</span><span class="mi">2</span><span class="p">,:],</span><span class="n">new_trasf</span><span class="p">[</span><span class="mi">2</span><span class="p">,:],</span><span class="n">new_trasf</span><span class="p">[</span><span class="mi">2</span><span class="p">,:]))</span>
+   
+    <span class="c1">### The new transformation
+</span>    <span class="n">newT</span> <span class="o">=</span> <span class="n">new_trasf</span><span class="o">/</span><span class="n">val_normalization</span>
+    
+    <span class="c1">### 
+</span>    <span class="n">xi</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">newT</span><span class="p">[</span><span class="mi">0</span><span class="p">,:],(</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">),</span><span class="n">order</span> <span class="o">=</span><span class="s">'F'</span><span class="p">)</span> 
+    <span class="n">yi</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">newT</span><span class="p">[</span><span class="mi">1</span><span class="p">,:],(</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">),</span><span class="n">order</span> <span class="o">=</span><span class="s">'F'</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">imm</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">imm</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xxq</span>  <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">rows</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">yyq</span>  <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">cols</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">yyq</span><span class="p">,</span><span class="n">xxq</span><span class="p">)</span> 
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="c1">#Offset x and y relative to region origin.
+</span>    <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> 
+        
+    <span class="n">ix</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">randint</span><span class="p">(</span><span class="n">im</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">nsamples</span><span class="p">)</span>
+    <span class="n">iy</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">randint</span><span class="p">(</span><span class="n">im</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">nsamples</span><span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">im</span><span class="p">[</span><span class="n">iy</span><span class="p">,</span><span class="n">ix</span><span class="p">]</span>
+       
+    <span class="n">int_im</span> <span class="o">=</span> <span class="n">griddata</span><span class="p">((</span><span class="n">iy</span><span class="p">,</span><span class="n">ix</span><span class="p">),</span> <span class="n">samples</span><span class="p">,</span> <span class="p">(</span><span class="n">yi</span><span class="p">,</span><span class="n">xi</span><span class="p">))</span>
+    
+    <span class="c1">#Plotting
+</span>    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">fig</span><span class="p">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">int_im</span><span class="p">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">uint8</span><span class="p">))</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Chọn 4 điểm trên bức ảnh cần chỉnh sửa
+# xx = [(213,13), (543,229),(545,344), (210,327) ,(213,13)]
+</span><span class="n">xx</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">552</span><span class="p">),(</span><span class="mi">641</span><span class="p">,</span><span class="mi">147</span><span class="p">),(</span><span class="mi">641</span><span class="p">,</span><span class="mi">737</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">843</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">552</span><span class="p">)]</span>
+<span class="n">zz</span><span class="p">,</span> <span class="n">zzd</span> <span class="o">=</span> <span class="n">generate_GT</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span>
+    
+<span class="c1">## Chuẩn hóa các điểm and return also scaling matrix
+</span><span class="n">norm_points_distorted</span><span class="p">,</span> <span class="n">T1_norm</span> <span class="o">=</span> <span class="n">normalize_points</span><span class="p">(</span><span class="n">zzd</span><span class="p">)</span>
+<span class="n">norm_points_GT</span><span class="p">,</span> <span class="n">T2_norm</span><span class="o">=</span> <span class="n">normalize_points</span><span class="p">(</span><span class="n">zz</span><span class="p">)</span>
+
+
+<span class="n">A</span> <span class="o">=</span> <span class="n">compute_A</span><span class="p">(</span><span class="n">norm_points_GT</span><span class="p">,</span><span class="n">norm_points_distorted</span><span class="p">)</span>
+<span class="n">hh</span> <span class="o">=</span>  <span class="n">compute_homography</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">T1_norm</span><span class="p">,</span><span class="n">T2_norm</span><span class="p">)</span>
+
+<span class="c1">### 
+</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span>  <span class="n">trasf</span><span class="p">,</span> <span class="n">trasf_prec</span><span class="p">,</span> <span class="n">imm_r</span> <span class="o">=</span> <span class="n">make_transform</span><span class="p">(</span><span class="n">im</span><span class="p">,</span><span class="n">hh</span><span class="p">)</span>     
+<span class="n">nn</span><span class="p">,</span><span class="n">mm</span>  <span class="o">=</span> <span class="n">im</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">im</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">nn</span><span class="p">,</span><span class="n">mm</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1000</span><span class="p">:</span>
+    <span class="n">kk</span> <span class="o">=</span><span class="mi">6</span>
+<span class="k">else</span><span class="p">:</span> <span class="n">kk</span> <span class="o">=</span><span class="mi">5</span>
+<span class="n">nsamples</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">kk</span>
+</code></pre></div></div>
+
+<p><img src="output_50_0.png" alt="png" /></p>
+
+<h3 id="33-xử-lý-barrel-distortion">3.3 Xử lý Barrel distortion</h3>
+<p>Barrel distortion đặc trưng bởi tọa độ của các điểm quan sát được trên hình dịch ra ngoài vị trí chính xác của chúng. Các đường thẳng song song trong thực tế xuất hiện là các đường cong trong ảnh. Cụ thể, ta quan sát hình ảnh một tòa nhà như sau:</p>
+
+<p><img src="https://drive.google.com/uc?export=view&amp;id=1jWA3WH_cayTStW3CZis86HvlCAyRpYny" alt="alt text" /></p>
+
+<p>Các cột trắng, lan can,… của tòa nhà bị cong. Do đó trong trường hợp ta muốn xử lý Barrel Distortion, ta không thể dùng ý tưởng tương tụ như việc xử lý projective distortion - tìm một xạ ảnh 2-chiều để xử lý và thu về ảnh không biến dạng vì xạ ảnh 2-chiều bảo toàn các đường thẳng và do đó không có tác dụng làm phẳng các đường cong.</p>
+
+<p>Tập hợp các phép xạ ảnh lập thành một nhóm bao trùm nhóm các phép biến đổi Affine, nên không thể xử lý một bức ảnh bị barrel distortion bằng cách sử dụng các phép tịnh tiến, quay, đối xứng, Affine, xạ ảnh như mong muốn ban đầu của tôi.</p>
+
+<p>Trong các nghiên cứu ban đầu về phương pháp làm phẳng một bức ảnh bị biến dạng theo loại “barrel”, mô hình đơn giản nhất được dùng để mô tả sự biến dạng là các đa thức bậc thấp, chẳng hạn:
+\(\begin{array}
+\hat{x}_c = x(1+\mathcal{k}_1r^2+\mathcal{k}_2r^4)\\
+\hat{y}_c = y(1+\mathcal{k}_1r^2+\mathcal{k}_2r^4)
+\end{array}\)
+trong đó $r^2 = x^2 + y^2$ và $\mathcal{k}_1,\mathcal{k}_2$ là các tham số biến dạng (Brown 1971)
+Khi xác định được $\mathcal{k}_1,\mathcal{k}_2$ thì các tọa độ pixel sau cùng là</p>
+
+\[x_{s} = fx^{'}_c+c_x \\
+y_{s} = fy{'}_c+c_y\]
+
+<p>Có nhiều kỹ thuật xác định tham số biến dạng như plumb-line method (Brown 1971) hay kỹ thuật sử dụng các mô hình phân tầng chuyển động (tịnh tiến, affine, xạ ảnh) trong chiến lược điều chỉnh thô (coarse-to-fine) cùng với khái niệm hiệu chỉnh một hàm bậc hai (quadratic) tham số biến dạng(Sawhney and Kumar 1999). Các kỹ thuật này là tương đối phức tạp với tôi nên trong khuôn khổ của bài tiểu luận này, tôi không đề cập chi tiết đến chúng.</p>
+
+<h2 id="4-kết-quả-result">4. Kết quả (Result)</h2>
+<hr />
+
+<p>Như vậy việc xử lý các bức ảnh bị biến dạng loại “barrel” bằng các phép biến hình 2-chiều được trình bày ở trên là không khả thi. Ta quay lại với kết quả xử lý một bức ảnh gặp phải biến dạng xạ ảnh.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">get_new_image</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">,</span><span class="n">im</span><span class="p">,</span><span class="n">bounds</span><span class="p">,</span><span class="n">trasf_prec</span><span class="p">,</span><span class="n">nsamples</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="output_54_0.png" alt="png" /></p>
+
+<p>Trong chương trình có đoạn <code class="language-plaintext highlighter-rouge">xx = [(0,552),(641,147),(641,737),(0,843),(0,552)]</code>, đây chính là tọa độ 4 điểm của mặt trước tòa nhà mà tôi chọn, riêng giá trị <code class="language-plaintext highlighter-rouge">(0,522)</code> cuối cùng là tọa độ của điểm đầu tiên được xác định để thuật toán vẽ được hình chữ nhật như bức hình ở phía trên.</p>
+
+<p>Mép trên mà mép dưới của tòa nhà sau khi hiệu chỉnh đã trở về trạng thái song song như trong thực tế, điều này cho ta góc nhìn chính diện ngôi nhà. Nó cũng chính là kết quả cuối cùng trong bài tiểu luận của tôi.</p>
+
+<h2 id="v-bàn-luận">V. Bàn luận</h2>
+<hr />
+
+<p>Các phép biến hình 2-chiều (tịnh tiến, Affine, xạ ảnh) đóng vai trò rất quan trọng trong việc xử lý ảnh. Nó được ứng dụng rất nhiều trong các phần mềm gõ văn bản, phần mềm trình chiếu như một công cụ không thể thiếu đối với các công việc văn phòng như soạn thảo văn bản, soạn bài thuyết trình,… . Mặt khác, trong giai đoạn tiền xử lý ảnh, các mô hình trên đóng góp rất lớn trong việc xử lý dữ liệu ảnh thô và đặc biệt là quá trình xử lý biến dạng xạ ảnh. Tuy nhiên, đối với các biến dạng phức tạp hơn như Barrel Distortion, việc áp dụng đơn thuần các phép biến hình không đem lại kết quả xử lý mong đợi bởi tính chất bảo toàn đường thẳng của chúng. Song bằng cách áp dụng thêm nhiều kỹ thuật mới, chúng ta có thể xử lý các biến dạng loại “barrel” hay thậm chí ứng dụng các phép tịnh tiến, Affine, xạ vào quá trình xử lý biến dạng.</p>
+
+<p>Trong tương lai, các phương pháp xử lý biến dạng “barrel” mà đặc biệt là các phương pháp có sử dụng các phép biến hình sẽ là chủ đề mà tôi tiếp tục quan tâm trong việc học tập theo định hướng “Thị giác máy tính” của bản thân.</p>
+
+<h2 id="vi-tài-liệu-tham-khảo-reference">VI. Tài liệu tham khảo (Reference)</h2>
+<hr />
+
+<ol>
+  <li>Szeliski, R. (2022). Computer vision: algorithms and applications. Springer Nature.</li>
+  <li>Hartley, R., &amp; Zisserman, A. (2003). Multiple view geometry in computer vision. Cambridge university press.</li>
+  <li>Brown, D. C. (1971). Close-range camera calibration. Photogrammetric Engineering, 37(8):855–866.</li>
+  <li>Sawhney, H. S. and Kumar, R. (1999). True multi-image alignment and its application to mosaicing and lens
+distortion correction. IEEE Transactions on Pattern Analysis and Machine Intelligence, 21(3):235–243.</li>
+</ol>
