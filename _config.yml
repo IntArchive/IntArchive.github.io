@@ -1,3 +1,77 @@
-site_name: HaiDinh blog
-permalink: /:title.html
+# Site Settings
+title: IntArchive Documentation
+description: Documentation and blog for IntArchive project
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://intarchive.github.io" # the base hostname & protocol
+repository: IntArchive/IntArchive.github.io
+
+# Author Settings
+author:
+  name: IntArchive Team
+  bio: Building the future of digital archiving
+  github: IntArchive
+  twitter: IntArchive
+
+# Build Settings
 markdown: kramdown
+highlighter: rouge
+permalink: /:year/:month/:day/:title/
+paginate: 10
+paginate_path: "/page:num/"
+
+# Plugin Settings
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-paginate
+  - jekyll-github-metadata
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:path/
+
+# Default Settings
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      comments: true
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "doc"
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
+# SEO Settings
+twitter:
+  username: IntArchive
+  card: summary_large_image
+
+# Analytics
+google_analytics: # Add your GA ID here
+
+# Comments
+comments:
+  provider: "disqus" # false (default), "disqus", "giscus"
+  disqus:
+    shortname: # Add your disqus shortname here
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .git/
+  - .github/
+  - README.md
+  - LICENSE

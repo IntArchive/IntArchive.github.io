@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Test blog</title>
-    <link rel = "stylesheet" type = "text/css" href = "style.css"> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+    {% seo %}
+    {% feed_meta %}
+    {% if site.google_analytics %}
+    {% include google-analytics.html %}
+    {% endif %}
     <!-- UI -->
     <style>
         .box{
@@ -41,14 +48,53 @@
     <!-- This the part that I copy from PhamDinhKhanh's Blog. Maybe I don't know what it is, so I will come back in the future /end-->
 </head>
 <body>
-    <div class="container"></div>
-    <div class="box"></div>
-<div id = "wrapper">
-    <h1><a href = "/">{{site.site_name}}<a><h1>
-    <div id = "content">
+    <header class="site-header">
+        <nav class="nav-container">
+            <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+            <div class="nav-links">
+                <a href="{{ '/docs' | relative_url }}">Documentation</a>
+                <a href="{{ '/blog' | relative_url }}">Blog</a>
+                <a href="{{ '/about' | relative_url }}">About</a>
+                <a href="{{ site.repository }}" target="_blank">GitHub</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="site-content">
         {{ content }}
-    </div>
-</div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-col">
+                <h3>{{ site.title }}</h3>
+                <p>{{ site.description }}</p>
+            </div>
+            <div class="footer-col">
+                <h3>Links</h3>
+                <ul>
+                    <li><a href="{{ '/docs' | relative_url }}">Documentation</a></li>
+                    <li><a href="{{ '/blog' | relative_url }}">Blog</a></li>
+                    <li><a href="{{ '/about' | relative_url }}">About</a></li>
+                    <li><a href="{{ site.repository }}">GitHub</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Connect</h3>
+                <ul class="social-links">
+                    {% if site.author.github %}
+                    <li><a href="https://github.com/{{ site.author.github }}" target="_blank">GitHub</a></li>
+                    {% endif %}
+                    {% if site.author.twitter %}
+                    <li><a href="https://twitter.com/{{ site.author.twitter }}" target="_blank">Twitter</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ site.time | date: '%Y' }} {{ site.title }}. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>
 <!-- 	<meta charset="utf-8">

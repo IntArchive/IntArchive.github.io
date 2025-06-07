@@ -1,9 +1,200 @@
 ---
 layout: default
 ---
-{% for post in site.posts %}
-	<div class = "post">
-		<h5><a href="{{ post.url }}">{{ post.title }}</a></h5>
-		<p> {{post.excerpt}}</p>
-	</div>
-{% endfor %}
+
+<div class="hero">
+    <div class="hero-content">
+        <h1>Welcome to IntArchive</h1>
+        <p class="hero-description">A modern solution for digital content preservation and management</p>
+        <div class="hero-buttons">
+            <a href="/docs" class="button primary">Get Started</a>
+            <a href="https://github.com/IntArchive" class="button secondary">View on GitHub</a>
+        </div>
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>📦 Robust Storage</h3>
+            <p>Secure, distributed storage system with built-in redundancy and verification.</p>
+        </div>
+        <div class="feature-card">
+            <h3>🤖 Smart Organization</h3>
+            <p>AI-powered content categorization and automatic metadata extraction.</p>
+        </div>
+        <div class="feature-card">
+            <h3>🔍 Easy Access</h3>
+            <p>Modern web interface for intuitive browsing and powerful search capabilities.</p>
+        </div>
+        <div class="feature-card">
+            <h3>🛡️ Preservation</h3>
+            <p>Industry-standard preservation techniques and format migration tools.</p>
+        </div>
+    </div>
+</div>
+
+<div class="recent-posts">
+    <h2>Latest Updates</h2>
+    <div class="post-grid">
+        {% for post in site.posts limit:3 %}
+        <article class="post-card">
+            <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+            <div class="post-meta">
+                <time datetime="{{ post.date | date_to_xmlschema }}">
+                    {{ post.date | date: "%B %-d, %Y" }}
+                </time>
+            </div>
+            <p>{{ post.excerpt | strip_html | truncatewords: 30 }}</p>
+            <a href="{{ post.url | relative_url }}" class="read-more">Read More →</a>
+        </article>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.hero {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 4rem 1rem;
+    text-align: center;
+    margin: -2rem -1rem 2rem;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.hero-description {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.button.primary {
+    background: white;
+    color: var(--primary-color);
+}
+
+.button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.button.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.button.secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.features {
+    padding: 4rem 0;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    background: var(--light-background);
+    padding: 2rem;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+}
+
+.feature-card h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.recent-posts {
+    padding: 4rem 0;
+}
+
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.post-card {
+    background: var(--light-background);
+    padding: 2rem;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.post-card:hover {
+    transform: translateY(-4px);
+}
+
+.post-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+.post-card .post-meta {
+    color: var(--light-text);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.read-more {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-description {
+        font-size: 1.1rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+    }
+    
+    .feature-grid,
+    .post-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
