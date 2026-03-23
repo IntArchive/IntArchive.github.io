@@ -1,0 +1,58 @@
+baseURL: "https://intarchive.github.io/"
+languageCode: "en-us"
+title: "My Blog"
+theme: "PaperMod"
+paginate: 10
+
+params:
+  homeInfoParams:
+    Title: "Welcome to My Blog 👋"
+    Content: "Math, code, and ideas."
+
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true   # ✅ Adds copy button to code blocks
+  math: true                  # ✅ Enable math globally
+
+menu:
+  main:
+    - name: Archive
+      url: /archives/
+      weight: 5
+    - name: Tags
+      url: /tags/
+      weight: 10
+    - name: Search
+      url: /search/
+      weight: 15
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON   # needed for search
+
+
+markup:
+  highlight:
+    style: dracula          # 🎨 Theme: dracula, monokai, github-dark, nord...
+    lineNos: true           # Show line numbers
+    lineNumbersInTable: true
+    noClasses: false
+    codeFences: true
+    guessSyntax: true
+  goldmark:
+    renderer:
+      unsafe: true          # Needed for raw HTML in markdown
+    extensions:
+      passthrough:           # ✅ Prevents Hugo from mangling LaTeX symbols
+        enable: true
+        delimiters:
+          block:
+            - - '$$'
+              - '$$'
+          inline:
+            - - '$'
+              - '$'
