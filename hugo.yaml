@@ -2,7 +2,7 @@ baseURL: "https://IntArchive.github.io/"
 languageCode: "en-us"
 title: "Dinh Minh Hai"
 theme: "PaperMod"
-paginate: 10
+paginate: 20
 
 # ---------------------------------------------------------------------------
 # Site Parameters
