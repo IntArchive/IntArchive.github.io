@@ -17,13 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true   # fetches PaperMod theme
+          submodules: true      # ← fetches PaperMod theme
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
           hugo-version: 'latest'
-          extended: true     # ✅ Must be extended
+          extended: true        # ← must be extended
 
       - name: Build
         run: hugo --minify

@@ -2,43 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:39079/</loc>
+    <loc>http://localhost:46175/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/estimation/</loc>
+    <loc>http://localhost:46175/tags/estimation/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/posts/nadaraya-watson-recursive-estimation/</loc>
+    <loc>http://localhost:46175/posts/nadaraya-watson-recursive-estimation/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/non-parametric/</loc>
+    <loc>http://localhost:46175/tags/non-parametric/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/posts/</loc>
+    <loc>http://localhost:46175/posts/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/r/</loc>
+    <loc>http://localhost:46175/tags/r/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/statistics/</loc>
+    <loc>http://localhost:46175/tags/statistics/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/</loc>
+    <loc>http://localhost:46175/tags/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/posts/my-first-post/</loc>
+    <loc>http://localhost:46175/posts/my-first-post/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/code/</loc>
+    <loc>http://localhost:46175/tags/code/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/tags/math/</loc>
+    <loc>http://localhost:46175/tags/math/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:39079/archives/</loc>
+    <loc>http://localhost:46175/archives/</loc>
   </url><url>
-    <loc>http://localhost:39079/categories/</loc>
+    <loc>http://localhost:46175/categories/</loc>
   </url><url>
-    <loc>http://localhost:39079/search/</loc>
+    <loc>http://localhost:46175/search/</loc>
   </url>
 </urlset>
