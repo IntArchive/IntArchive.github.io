@@ -2,43 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:33451/</loc>
+    <loc>http://localhost:1313/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/estimation/</loc>
+    <loc>http://localhost:1313/tags/estimation/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/posts/nadaraya-watson-recursive-estimation/</loc>
+    <loc>http://localhost:1313/posts/nadaraya-watson-recursive-estimation/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/non-parametric/</loc>
+    <loc>http://localhost:1313/tags/non-parametric/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/posts/</loc>
+    <loc>http://localhost:1313/posts/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/r/</loc>
+    <loc>http://localhost:1313/tags/r/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/statistics/</loc>
+    <loc>http://localhost:1313/tags/statistics/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
     <lastmod>2025-01-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/posts/my-first-post/</loc>
+    <loc>http://localhost:1313/posts/my-first-post/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/code/</loc>
+    <loc>http://localhost:1313/tags/code/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/tags/math/</loc>
+    <loc>http://localhost:1313/tags/math/</loc>
     <lastmod>2024-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:33451/archives/</loc>
+    <loc>http://localhost:1313/archives/</loc>
   </url><url>
-    <loc>http://localhost:33451/categories/</loc>
+    <loc>http://localhost:1313/categories/</loc>
   </url><url>
-    <loc>http://localhost:33451/search/</loc>
+    <loc>http://localhost:1313/search/</loc>
   </url>
 </urlset>
