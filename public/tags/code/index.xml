@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Code on Dinh Minh Hai</title>
-    <link>http://localhost:1313/tags/code/</link>
+    <link>http://localhost:38921/tags/code/</link>
     <description>Recent content in Code on Dinh Minh Hai</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 01 Jan 2024 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/code/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:38921/tags/code/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Beautiful Math and Code</title>
-      <link>http://localhost:1313/posts/my-first-post/</link>
+      <link>http://localhost:38921/posts/my-first-post/</link>
       <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/my-first-post/</guid>
+      <guid>http://localhost:38921/posts/my-first-post/</guid>
       <description>&lt;h2 id=&#34;inline-math&#34;&gt;Inline Math&lt;/h2&gt;
 &lt;p&gt;Einstein&amp;rsquo;s famous equation: $E = mc^2$&lt;/p&gt;
 &lt;h2 id=&#34;display-math&#34;&gt;Display Math&lt;/h2&gt;
