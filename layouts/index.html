@@ -1,0 +1,599 @@
+{{ define "main" }}
+
+<style>
+  /* ─── Google Fonts ─────────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap');
+
+  /* ─── Profile Page Variables ────────────────────────────── */
+  :root {
+    --accent:       #2563eb;
+    --accent-light: #dbeafe;
+    --tag-bg:       rgba(37, 99, 235, 0.09);
+    --card-radius:  12px;
+    --section-gap:  3.5rem;
+    --serif:        'EB Garamond', Georgia, serif;
+    --sans:         'DM Sans', system-ui, sans-serif;
+    --mono:         'DM Mono', monospace;
+  }
+
+  .dark {
+    --accent-light: rgba(37, 99, 235, 0.18);
+    --tag-bg:       rgba(96, 165, 250, 0.13);
+  }
+
+  /* ─── Reset for profile page ─────────────────────────────── */
+  .profile-page {
+    font-family: var(--sans);
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+    line-height: 1.7;
+  }
+
+  /* ─── Hero ───────────────────────────────────────────────── */
+  .hero {
+    display: flex;
+    gap: 2.5rem;
+    align-items: flex-start;
+    margin-bottom: var(--section-gap);
+    padding-bottom: var(--section-gap);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-text { flex: 1; }
+
+  .hero-name {
+    font-family: var(--serif);
+    font-size: 2.8rem;
+    font-weight: 600;
+    line-height: 1.1;
+    margin: 0 0 0.25rem;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+  }
+
+  .hero-title {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--secondary);
+    margin: 0 0 0.2rem;
+    letter-spacing: 0.01em;
+  }
+
+  .hero-affil {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin: 0 0 1.2rem;
+    font-weight: 500;
+  }
+
+  .hero-bio {
+    font-family: var(--serif);
+    font-size: 1.12rem;
+    color: var(--content);
+    margin: 0 0 1.5rem;
+    line-height: 1.75;
+  }
+
+  .hero-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hero-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.85rem;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.18s ease;
+    font-family: var(--sans);
+  }
+
+  .hero-links a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--tag-bg);
+  }
+
+  .hero-photo {
+    flex-shrink: 0;
+  }
+
+  .avatar-ring {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+  }
+
+  .avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--entry);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--accent);
+    overflow: hidden;
+  }
+
+  .avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  /* ─── Section ─────────────────────────────────────────────── */
+  .profile-section {
+    margin-bottom: var(--section-gap);
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0 0 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent);
+    display: inline-block;
+  }
+
+  /* ─── Research grid ──────────────────────────────────────── */
+  .research-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .research-card {
+    padding: 1.2rem 1.3rem;
+    background: var(--entry);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border);
+    transition: border-color 0.18s, transform 0.18s;
+  }
+
+  .research-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .research-card h3 {
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .research-card p {
+    font-size: 0.9rem;
+    color: var(--content);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* ─── Project cards ──────────────────────────────────────── */
+  .project-list { display: flex; flex-direction: column; gap: 1.2rem; }
+
+  .project-card {
+    padding: 1.3rem 1.5rem;
+    background: var(--entry);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    transition: transform 0.18s;
+  }
+
+  .project-card:hover { transform: translateX(4px); }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .project-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0;
+  }
+
+  .project-badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-family: var(--sans);
+  }
+
+  .badge-research  { background: #dbeafe; color: #1d4ed8; }
+  .badge-thesis    { background: #d1fae5; color: #065f46; }
+  .badge-industry  { background: #fef3c7; color: #92400e; }
+  .dark .badge-research { background: rgba(37,99,235,0.2); color: #93c5fd; }
+  .dark .badge-thesis   { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+  .dark .badge-industry { background: rgba(245,158,11,0.2); color: #fcd34d; }
+
+  .project-org {
+    font-size: 0.82rem;
+    color: var(--secondary);
+    margin: 0 0 0.6rem;
+    font-weight: 400;
+  }
+
+  .project-desc {
+    font-size: 0.93rem;
+    color: var(--content);
+    margin: 0 0 0.8rem;
+    line-height: 1.65;
+  }
+
+  .project-outcome {
+    font-size: 0.85rem;
+    color: var(--secondary);
+    background: var(--tag-bg);
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    border-left: 2px solid var(--accent);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+
+  .tag {
+    font-size: 0.73rem;
+    font-weight: 500;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+
+  /* ─── Education ──────────────────────────────────────────── */
+  .edu-item {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .edu-item:last-child { border-bottom: none; }
+
+  .edu-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .edu-body { flex: 1; }
+
+  .edu-degree {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0 0 0.15rem;
+  }
+
+  .edu-school {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin: 0 0 0.1rem;
+    font-weight: 500;
+  }
+
+  .edu-meta {
+    font-size: 0.82rem;
+    color: var(--secondary);
+    margin: 0;
+  }
+
+  /* ─── Recent Posts ───────────────────────────────────────── */
+  .posts-list { display: flex; flex-direction: column; gap: 0.9rem; }
+
+  .post-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--border);
+    text-decoration: none;
+  }
+
+  .post-row:last-child { border-bottom: none; }
+
+  .post-row-title {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    color: var(--primary);
+    transition: color 0.15s;
+  }
+
+  .post-row:hover .post-row-title { color: var(--accent); }
+
+  .post-row-date {
+    font-size: 0.78rem;
+    color: var(--secondary);
+    white-space: nowrap;
+    font-family: var(--mono);
+  }
+
+  /* ─── Contact ─────────────────────────────────────────────── */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem;
+    background: var(--entry);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    text-decoration: none;
+    color: var(--primary);
+    font-size: 0.9rem;
+    transition: border-color 0.18s, color 0.18s;
+  }
+
+  .contact-item:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .contact-icon { font-size: 1.1rem; }
+
+  /* ─── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .hero { flex-direction: column-reverse; align-items: center; text-align: center; }
+    .hero-links { justify-content: center; }
+    .hero-name { font-size: 2.1rem; }
+    .avatar-ring { width: 110px; height: 110px; }
+  }
+</style>
+
+<div class="profile-page">
+
+  <!-- ══════════════════ HERO ══════════════════ -->
+  <div class="hero">
+    <div class="hero-text">
+      <h1 class="hero-name">Dinh Minh Hai</h1>
+      <p class="hero-title">Mathematics &amp; AI Researcher · Ho Chi Minh City</p>
+      <p class="hero-affil">Ho Chi Minh City University of Education</p>
+      <p class="hero-bio">
+        I am a Mathematics graduate with deep interest in the intersection of
+        <strong>Artificial Intelligence and Mathematics</strong>.
+        My research spans evaluating LLMs' reasoning on proof problems,
+        recursive statistical estimation, and building intelligent
+        knowledge-retrieval systems. I enjoy rigorous theory and
+        building things that actually work.
+      </p>
+      <div class="hero-links">
+        <a href="mailto:dinh.minh.hai259@gmail.com">✉ Email</a>
+        <a href="https://github.com/intarchive" target="_blank">⌥ GitHub</a>
+        <a href="https://www.linkedin.com/in/" target="_blank">in LinkedIn</a>
+        <a href="/posts/">✍ Blog</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <div class="avatar-ring">
+        <div class="avatar-inner">
+          <!-- Replace /images/avatar.jpg with your photo -->
+          {{ if fileExists "static/images/avatar.jpg" }}
+            <img src="/images/avatar.jpg" alt="Dinh Minh Hai">
+          {{ else }}
+            DMH
+          {{ end }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ RESEARCH ══════════════════ -->
+  <div class="profile-section">
+    <h2 class="section-title">Research Interests</h2>
+    <div class="research-grid">
+      <div class="research-card">
+        <h3>AI for Mathematics</h3>
+        <p>LLM mathematical reasoning, redundancy detection in proof problems, and multi-agent verification systems.</p>
+      </div>
+      <div class="research-card">
+        <h3>Statistical Estimation</h3>
+        <p>Recursive non-parametric estimation, periodic shape-invariant models, and asymptotic convergence theory.</p>
+      </div>
+      <div class="research-card">
+        <h3>NLP &amp; Retrieval</h3>
+        <p>RAG pipelines, embedding fine-tuning, contrastive learning, and enterprise knowledge-base systems.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ PROJECTS ══════════════════ -->
+  <div class="profile-section">
+    <h2 class="section-title">Projects &amp; Research</h2>
+    <div class="project-list">
+
+      <div class="project-card">
+        <div class="project-header">
+          <p class="project-title">RHIM: Redundant Hypothesis Identification in Math</p>
+          <span class="project-badge badge-research">Research</span>
+        </div>
+        <p class="project-org">Ho Chi Minh City University of Education · Oct 2024 – Present</p>
+        <p class="project-desc">
+          Created a benchmark of 3,439 Proof Problems With Redundant Assumptions (PPWRA) to evaluate LLMs'
+          ability to detect redundancy. Devised logic-based strategies for constructing redundant assumptions
+          and developed a multi-agent system for detection, proof, and automatic verification.
+          Benchmarked GPT-4o, Gemini, o1, and DeepSeek-R1.
+        </p>
+        <p class="project-outcome">
+          🏆 Best accuracy: 49% (o1) — showing leading models still struggle with redundancy identification.
+        </p>
+        <div class="tag-list">
+          <span class="tag">LLM Reasoning</span>
+          <span class="tag">Multi-Agent</span>
+          <span class="tag">Formal Math</span>
+          <span class="tag">Benchmarking</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <p class="project-title">Recursive Estimation in Models of Deformation</p>
+          <span class="project-badge badge-thesis">Thesis</span>
+        </div>
+        <p class="project-org">HCMUE Undergraduate Thesis · Sep 2023 – May 2024</p>
+        <p class="project-desc">
+          Reproduced and extended results from Fraysse (2014). Researched periodic shape-invariant models,
+          the Robbins–Monro algorithm, and Nadaraya–Watson recursive estimation.
+          Provided rigorous proofs of parametric and non-parametric convergence, asymptotic normality,
+          and quadratic laws. Implemented in R with a vectorized algorithm.
+        </p>
+        <p class="project-outcome">
+          🏆 30% execution time reduction via vectorization. Accurately reproduced ECG waveforms for healthy and pathological hearts.
+        </p>
+        <div class="tag-list">
+          <span class="tag">Non-parametric Stats</span>
+          <span class="tag">R</span>
+          <span class="tag">Asymptotic Theory</span>
+          <span class="tag">Time Series</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <p class="project-title">RAG Chatbot for Internal Knowledge Bases</p>
+          <span class="project-badge badge-industry">Industry</span>
+        </div>
+        <p class="project-org">Big Data Research Center, VinUni · Jul–Nov 2025</p>
+        <p class="project-desc">
+          Built an end-to-end RAG pipeline on WixQA: multi-strategy chunking, Chroma vector stores,
+          Qwen3-0.6B embeddings. Designed a unified evaluation framework (Recall/HitRate/MRR, BLEU/ROUGE,
+          LLM-judged factuality). Improved retrieval via contrastive fine-tuning + BAAI/bge-reranker.
+          Prototyped hybrid GraphDB+VectorStore RAG with LLM-based entity/relation extraction.
+        </p>
+        <p class="project-outcome">
+          🏆 74.2% Recall@3 · token-based Recall@3: 0.705→0.742 (+5.2%) · MRR@3: 0.487→0.512 (+5.1%)
+        </p>
+        <div class="tag-list">
+          <span class="tag">RAG</span>
+          <span class="tag">Embeddings</span>
+          <span class="tag">Reranking</span>
+          <span class="tag">GraphRAG</span>
+          <span class="tag">Qwen3</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <p class="project-title">Sentiment Analysis on Amazon Reviews</p>
+          <span class="project-badge badge-industry">Industry</span>
+        </div>
+        <p class="project-org">Big Data Research Center, VinUni · Sep–Nov 2025</p>
+        <p class="project-desc">
+          Multi-class sentiment classification with severe class imbalance.
+          Benchmarked CNN, RoBERTa, DeBERTa. Applied Contrastive Learning for feature representation,
+          and Q-LoRA for memory-efficient LLM fine-tuning.
+        </p>
+        <p class="project-outcome">
+          🏆 10% performance gain over Qwen-0.6B baseline.
+        </p>
+        <div class="tag-list">
+          <span class="tag">Sentiment Analysis</span>
+          <span class="tag">Q-LoRA</span>
+          <span class="tag">Contrastive Learning</span>
+          <span class="tag">DeBERTa</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════ EDUCATION ══════════════════ -->
+  <div class="profile-section">
+    <h2 class="section-title">Education</h2>
+
+    <div class="edu-item">
+      <div class="edu-dot"></div>
+      <div class="edu-body">
+        <p class="edu-degree">Bachelor of Mathematics &amp; Teaching Mathematics</p>
+        <p class="edu-school">Ho Chi Minh City University of Education (HCMUE)</p>
+        <p class="edu-meta">Sep 2019 – 2025 &nbsp;·&nbsp; GPA: 3.24 / 4.00</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ RECENT POSTS ══════════════════ -->
+  {{ $posts := where .Site.RegularPages "Type" "posts" }}
+  {{ if $posts }}
+  <div class="profile-section">
+    <h2 class="section-title">Recent Posts</h2>
+    <div class="posts-list">
+      {{ range first 5 $posts }}
+      <a class="post-row" href="{{ .Permalink }}">
+        <span class="post-row-title">{{ .Title }}</span>
+        <span class="post-row-date">{{ .Date.Format "Jan 2006" }}</span>
+      </a>
+      {{ end }}
+    </div>
+    <p style="margin-top:1rem;">
+      <a href="/posts/" style="color:var(--accent);font-size:0.9rem;font-weight:500;">
+        View all posts →
+      </a>
+    </p>
+  </div>
+  {{ end }}
+
+  <!-- ══════════════════ CONTACT ══════════════════ -->
+  <div class="profile-section">
+    <h2 class="section-title">Contact</h2>
+    <div class="contact-grid">
+      <a class="contact-item" href="mailto:dinh.minh.hai259@gmail.com">
+        <span class="contact-icon">✉</span>
+        <span>dinh.minh.hai259@gmail.com</span>
+      </a>
+      <a class="contact-item" href="https://github.com/intarchive" target="_blank">
+        <span class="contact-icon">⌥</span>
+        <span>github.com/intarchive</span>
+      </a>
+      <a class="contact-item" href="tel:+84968233634">
+        <span class="contact-icon">☏</span>
+        <span>0968 233 634</span>
+      </a>
+    </div>
+  </div>
+
+</div>
+{{ end }}

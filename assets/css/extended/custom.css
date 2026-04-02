@@ -1,0 +1,106 @@
+/* =========================================================
+   Extended CSS for Dinh Minh Hai's blog
+   Place this file at: assets/css/extended/custom.css
+   Hugo + PaperMod will auto-load it.
+   ========================================================= */
+
+/* ── Typography refinements for blog posts ── */
+.post-content {
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ── Code block improvements ── */
+.post-content pre {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+/* Line number column */
+.post-content .chroma .lnt {
+  color: #666;
+  margin-right: 0.8em;
+  padding-right: 0.8em;
+  border-right: 1px solid #444;
+  user-select: none;
+}
+
+/* Inline code */
+.post-content :not(pre) > code {
+  background: var(--code-bg, rgba(0,0,0,0.06));
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  font-size: 0.87em;
+  font-family: 'DM Mono', 'Fira Code', monospace;
+  color: #d63384;
+}
+
+.dark .post-content :not(pre) > code {
+  background: rgba(255,255,255,0.08);
+  color: #f472b6;
+}
+
+/* ── Math display centering ── */
+.MathJax_Display, mjx-container[display="true"] {
+  overflow-x: auto;
+  padding: 0.5em 0;
+}
+
+/* ── Post list cards ── */
+.post-entry {
+  border-radius: 10px !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.post-entry:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08) !important;
+}
+
+/* ── Tags styling ── */
+.post-tags a {
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  font-family: 'DM Mono', monospace !important;
+}
+
+/* ── Table of Contents ── */
+#TableOfContents {
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+#TableOfContents a {
+  color: var(--secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+#TableOfContents a:hover {
+  color: var(--accent, #2563eb);
+}
+
+/* ── Blockquote ── */
+.post-content blockquote {
+  border-left: 3px solid #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  border-radius: 0 8px 8px 0;
+  padding: 0.8rem 1.2rem;
+  font-style: italic;
+  color: var(--secondary);
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 999px; }
+.dark ::-webkit-scrollbar-thumb { background: #444; }

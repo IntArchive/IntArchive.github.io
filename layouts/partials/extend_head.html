@@ -1,3 +1,8 @@
+{{/* Inject MathJax when math is enabled (per-page or site-wide) */}}
 {{ if or .Params.math .Site.Params.math }}
   {{ partial "math.html" . }}
 {{ end }}
+
+{{/* Google Fonts preconnect for performance */}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

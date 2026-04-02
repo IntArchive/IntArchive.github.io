@@ -1,53 +1,98 @@
 baseURL: "https://intarchive.github.io/"
 languageCode: "en-us"
-title: "My Blog"
+title: "Dinh Minh Hai"
 theme: "PaperMod"
 paginate: 10
 
+# ---------------------------------------------------------------------------
+# Site Parameters
+# ---------------------------------------------------------------------------
 params:
-  homeInfoParams:
-    Title: "Welcome to My Blog 👋"
-    Content: "Math, code, and ideas."
+  # Profile info (used in meta tags, RSS, etc.)
+  author: "Dinh Minh Hai"
+  description: "Personal blog and research portfolio — Mathematics & AI."
 
+  # PaperMod features
   ShowReadingTime: true
   ShowShareButtons: false
   ShowPostNavLinks: true
   ShowBreadCrumbs: true
-  ShowCodeCopyButtons: true   # ✅ Adds copy button to code blocks
-  math: true                  # ✅ Enable math globally
+  ShowCodeCopyButtons: true   # Adds copy button to every code block
+  ShowToc: true               # Table of contents on long posts
+  TocOpen: false
+  math: true                  # Enable MathJax globally
 
+  # Social links shown in PaperMod's default footer / profile card
+  socialIcons:
+    - name: github
+      url: "https://github.com/intarchive"
+    - name: email
+      url: "mailto:dinh.minh.hai259@gmail.com"
+    - name: linkedin
+      url: "https://www.linkedin.com/in/"
+
+  # Cover image shown in post previews (optional)
+  cover:
+    hiddenInList: false
+    hiddenInSingle: false
+
+  # Search
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 0.4
+    minMatchCharLength: 0
+    keys: ["title", "permalink", "summary", "content"]
+
+# ---------------------------------------------------------------------------
+# Navigation Menu
+# ---------------------------------------------------------------------------
 menu:
   main:
+    - name: Home
+      url: /
+      weight: 1
+    - name: Blog
+      url: /posts/
+      weight: 5
     - name: Archive
       url: /archives/
-      weight: 5
+      weight: 10
     - name: Tags
       url: /tags/
-      weight: 10
+      weight: 15
     - name: Search
       url: /search/
-      weight: 15
+      weight: 20
 
+# ---------------------------------------------------------------------------
+# Outputs  (JSON needed for search, RSS for feeds)
+# ---------------------------------------------------------------------------
 outputs:
   home:
     - HTML
     - RSS
-    - JSON   # needed for search
+    - JSON
 
-
+# ---------------------------------------------------------------------------
+# Markup / Rendering
+# ---------------------------------------------------------------------------
 markup:
   highlight:
-    style: dracula          # 🎨 Theme: dracula, monokai, github-dark, nord...
-    lineNos: true           # Show line numbers
+    style: dracula             # Options: dracula, monokai, github-dark, nord, solarized-dark
+    lineNos: true
     lineNumbersInTable: true
     noClasses: false
     codeFences: true
     guessSyntax: true
+
   goldmark:
     renderer:
-      unsafe: true          # Needed for raw HTML in markdown
+      unsafe: true             # Allow raw HTML inside Markdown
     extensions:
-      passthrough:           # ✅ Prevents Hugo from mangling LaTeX symbols
+      passthrough:             # Prevent Hugo from mangling LaTeX _ and ^
         enable: true
         delimiters:
           block:

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=39079&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Nadaraya–Watson Recursive Estimation: Theory and Implementation | Dinh Minh Hai</title>
+<meta name="keywords" content="statistics, estimation, R, non-parametric">
+<meta name="description" content="A deep dive into the Nadaraya–Watson recursive estimator — from convergence theory to R implementation on ECG data.">
+<meta name="author" content="Dinh Minh Hai">
+<link rel="canonical" href="http://localhost:39079/posts/nadaraya-watson-recursive-estimation/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d08af65f4e462d52c8482eeb9db6cad070b58ea5d43bbc97db8bf074a14ae752.css" integrity="sha256-0Ir2X05GLVLISC7rnbbK0HC1jqXUO7yX24vwdKFK51I=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:39079/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:39079/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:39079/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:39079/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:39079/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:39079/posts/nadaraya-watson-recursive-estimation/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+  
+<script>
+  MathJax = {
+    tex: {
+      inlineMath:  [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      tags: 'ams',                         
+      macros: {
+        R: '{\\mathbb{R}}',
+        N: '{\\mathbb{N}}',
+        E: '{\\mathbb{E}}',
+        P: '{\\mathbb{P}}',
+        norm: ['{\\left\\lVert #1 \\right\\rVert}', 1],
+        abs:  ['{\\left| #1 \\right|}', 1]
+      }
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+</script>
+
+
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:39079/" accesskey="h" title="Dinh Minh Hai (Alt + H)">Dinh Minh Hai</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:39079/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:39079/posts/" title="Blog">
+                    <span>Blog</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:39079/archives/" title="Archive">
+                    <span>Archive</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:39079/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:39079/search/" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:39079/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:39079/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Nadaraya–Watson Recursive Estimation: Theory and Implementation
+    </h1>
+    <div class="post-description">
+      A deep dive into the Nadaraya–Watson recursive estimator — from convergence theory to R implementation on ECG data.
+    </div>
+    <div class="post-meta"><span title='2025-01-15 00:00:00 +0000 UTC'>January 15, 2025</span>&nbsp;·&nbsp;<span>3 min</span>&nbsp;·&nbsp;<span>Dinh Minh Hai</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#introduction" aria-label="Introduction">Introduction</a></li>
+                <li>
+                    <a href="#the-recursive-version" aria-label="The Recursive Version">The Recursive Version</a><ul>
+                        
+                <li>
+                    <a href="#convergence-result" aria-label="Convergence Result">Convergence Result</a></li></ul>
+                </li>
+                <li>
+                    <a href="#r-implementation" aria-label="R Implementation">R Implementation</a></li>
+                <li>
+                    <a href="#key-takeaways" aria-label="Key Takeaways">Key Takeaways</a></li>
+                <li>
+                    <a href="#references" aria-label="References">References</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="introduction">Introduction<a hidden class="anchor" aria-hidden="true" href="#introduction">#</a></h2>
+<p>Suppose we observe pairs $(X_1, Y_1), \ldots, (X_n, Y_n)$ where we want to estimate
+the <strong>regression function</strong></p>
+$$
+m(x) = \mathbb{E}[Y \mid X = x].
+$$<p>The classical <strong>Nadaraya–Watson estimator</strong> is defined as</p>
+$$
+\hat{m}_n(x) = \frac{\sum_{i=1}^n K_h(x - X_i)\, Y_i}{\sum_{i=1}^n K_h(x - X_i)},
+$$<p>where $K_h(u) = h^{-1} K(u/h)$ is a kernel with bandwidth $h > 0$.</p>
+<h2 id="the-recursive-version">The Recursive Version<a hidden class="anchor" aria-hidden="true" href="#the-recursive-version">#</a></h2>
+<p>In my thesis, I studied a <strong>recursive</strong> variant suited for streaming data.
+Define the sequence of estimates:</p>
+$$
+\hat{m}_{n+1}(x) = \hat{m}_n(x) + \gamma_{n+1}\, K_{h_{n+1}}(x - X_{n+1})
+\bigl[Y_{n+1} - \hat{m}_n(x)\bigr],
+$$<p>where $\{\gamma_n\}$ is a step-size sequence satisfying the <strong>Robbins–Monro conditions</strong>:</p>
+$$
+\sum_{n=1}^\infty \gamma_n = \infty, \qquad \sum_{n=1}^\infty \gamma_n^2 < \infty.
+$$<h3 id="convergence-result">Convergence Result<a hidden class="anchor" aria-hidden="true" href="#convergence-result">#</a></h3>
+<p>Under mild regularity conditions on the kernel $K$ and the density $f$ of $X$, one can show:</p>
+$$
+\hat{m}_n(x) \xrightarrow{a.s.} m(x) \quad \text{as } n \to \infty.
+$$<p>Moreover, the estimator satisfies an <strong>asymptotic normality</strong> result:</p>
+$$
+\sqrt{n h_n}\,\bigl(\hat{m}_n(x) - m(x)\bigr) \xrightarrow{d} \mathcal{N}\!\left(0,\; \frac{\sigma^2(x)\,\|K\|_2^2}{f(x)}\right),
+$$<p>where $\sigma^2(x) = \mathrm{Var}(Y \mid X = x)$ and $\|K\|_2^2 = \int K^2(u)\,du$.</p>
+<h2 id="r-implementation">R Implementation<a hidden class="anchor" aria-hidden="true" href="#r-implementation">#</a></h2>
+<p>Here&rsquo;s the core vectorized implementation I used to simulate ECG waveforms:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-r" data-lang="r"><span class="line"><span class="cl"><span class="c1">#&#39; Recursive Nadaraya-Watson Estimator</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39; @param x     Grid of evaluation points</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39; @param X     Observed covariates (n x 1)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39; @param Y     Observed responses  (n x 1)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39; @param h_fn  Bandwidth function h(n) -&gt; numeric</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39; @param gamma_fn Step-size function gamma(n) -&gt; numeric</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#&#39; @return Matrix of estimates: nrow = length(x), ncol = n</span>
+</span></span><span class="line"><span class="cl"><span class="n">recursive_nw</span> <span class="o">&lt;-</span> <span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">h_fn</span><span class="p">,</span> <span class="n">gamma_fn</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">n</span>   <span class="o">&lt;-</span> <span class="nf">length</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="n">m</span>   <span class="o">&lt;-</span> <span class="nf">length</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="n">est</span> <span class="o">&lt;-</span> <span class="nf">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="n">nrow</span> <span class="o">=</span> <span class="n">m</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="n">n</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1"># Gaussian kernel (vectorized over x at each step)</span>
+</span></span><span class="line"><span class="cl">  <span class="n">K</span> <span class="o">&lt;-</span> <span class="kr">function</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="nf">dnorm</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="kr">for</span> <span class="p">(</span><span class="n">i</span> <span class="kr">in</span> <span class="nf">seq_len</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">h</span>     <span class="o">&lt;-</span> <span class="nf">h_fn</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">gamma</span> <span class="o">&lt;-</span> <span class="nf">gamma_fn</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">k_vec</span> <span class="o">&lt;-</span> <span class="nf">K</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">X[i]</span><span class="p">)</span> <span class="o">/</span> <span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="n">h</span>        <span class="c1"># m-length vector</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="m">1L</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="n">est[</span><span class="p">,</span> <span class="n">i]</span> <span class="o">&lt;-</span> <span class="n">k_vec</span> <span class="o">*</span> <span class="n">Y[i]</span> <span class="o">/</span> <span class="p">(</span><span class="n">k_vec</span> <span class="o">+</span> <span class="m">1e-12</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="kr">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="n">prev</span>       <span class="o">&lt;-</span> <span class="n">est[</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="m">1L</span><span class="n">]</span>
+</span></span><span class="line"><span class="cl">      <span class="n">est[</span><span class="p">,</span> <span class="n">i]</span>   <span class="o">&lt;-</span> <span class="n">prev</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">k_vec</span> <span class="o">*</span> <span class="p">(</span><span class="n">Y[i]</span> <span class="o">-</span> <span class="n">prev</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="n">est</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Example: h(n) = n^{-1/5},  gamma(n) = 1/n</span>
+</span></span><span class="line"><span class="cl"><span class="n">result</span> <span class="o">&lt;-</span> <span class="nf">recursive_nw</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">  <span class="n">x</span>      <span class="o">=</span> <span class="nf">seq</span><span class="p">(</span><span class="o">-</span><span class="kc">pi</span><span class="p">,</span> <span class="kc">pi</span><span class="p">,</span> <span class="n">length.out</span> <span class="o">=</span> <span class="m">200</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">  <span class="n">X</span>      <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="m">1000</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">  <span class="n">Y</span>      <span class="o">=</span> <span class="nf">sin</span><span class="p">(</span><span class="nf">rnorm</span><span class="p">(</span><span class="m">1000</span><span class="p">))</span> <span class="o">+</span> <span class="nf">rnorm</span><span class="p">(</span><span class="m">1000</span><span class="p">,</span> <span class="n">sd</span> <span class="o">=</span> <span class="m">0.2</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">  <span class="n">h_fn</span>   <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="n">n</span><span class="nf">^</span><span class="p">(</span><span class="m">-1</span><span class="o">/</span><span class="m">5</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">  <span class="n">gamma_fn</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="m">1</span> <span class="o">/</span> <span class="n">n</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The vectorization over the grid <code>x</code> at each step avoids the inner loop, giving roughly a <strong>30× speedup</strong> compared to a naïve double-loop implementation.</p>
+<h2 id="key-takeaways">Key Takeaways<a hidden class="anchor" aria-hidden="true" href="#key-takeaways">#</a></h2>
+<ul>
+<li>The recursive estimator updates <strong>in $\mathcal{O}(m)$</strong> per observation (vs $\mathcal{O}(nm)$ for batch NW).</li>
+<li>Choosing $h_n \sim n^{-1/(4+d)}$ is optimal for $d$-dimensional $X$.</li>
+<li>The step-size $\gamma_n = c/n$ satisfies Robbins–Monro and gives $\sqrt{n}$-rate convergence under standard assumptions.</li>
+</ul>
+<h2 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h2>
+<ol>
+<li>Fraysse, P. (2014). <em>Recursive Estimation in a Class of Models of Deformation</em>. Journal of Statistical Planning and Inference.</li>
+<li>Nadaraya, E. A. (1964). On estimating regression. <em>Theory of Probability and Its Applications</em>, 9(1), 141–142.</li>
+<li>Watson, G. S. (1964). Smooth regression analysis. <em>Sankhyā</em>, Series A, 26, 359–372.</li>
+</ol>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:39079/tags/statistics/">Statistics</a></li>
+      <li><a href="http://localhost:39079/tags/estimation/">Estimation</a></li>
+      <li><a href="http://localhost:39079/tags/r/">R</a></li>
+      <li><a href="http://localhost:39079/tags/non-parametric/">Non-Parametric</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="http://localhost:39079/posts/my-first-post/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Beautiful Math and Code</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:39079/">Dinh Minh Hai</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
